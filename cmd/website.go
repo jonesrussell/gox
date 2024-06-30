@@ -16,17 +16,55 @@ import (
 	"golang.org/x/net/html"
 )
 
-var (
-	serverMux *http.ServeMux
-	server    *http.Server
-	wg        sync.WaitGroup
-)
+type Server struct {
+	mux  *http.ServeMux
+	srv  *http.Server
+	wg   sync.WaitGroup
+	page Page
+}
 
 type Page struct {
 	Title string
 }
 
-// websiteCmd represents the website command
+func NewServer() *Server {
+	return &Server{
+		mux: http.NewServeMux(),
+		srv: &http.Server{Addr: ":3000"},
+	}
+}
+
+func (s *Server) Start() {
+	s.mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		handleRequest(w, r, s.page)
+	})
+
+	s.srv.Handler = s.mux
+
+	s.wg.Add(1)
+	go func() {
+		defer s.wg.Done()
+
+		log.Println("Listening on :3000...")
+		if err := s.srv.ListenAndServe(); err != http.ErrServerClosed {
+			log.Fatal(err)
+		}
+	}()
+}
+
+func (s *Server) Stop() {
+	if s.srv != nil {
+		if err := s.srv.Close(); err != nil {
+			log.Fatal(err)
+		}
+		s.wg.Wait() // Wait for the server to shutdown
+	}
+}
+
+func (s *Server) UpdateTitle(title string) {
+	s.page.Title = title
+}
+
 var websiteCmd = &cobra.Command{
 	Use:   "website",
 	Short: "Create a no code website from the command line",
@@ -36,27 +74,9 @@ var websiteCmd = &cobra.Command{
 	quickly	set up a static website.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		reader := bufio.NewReader(os.Stdin)
+		server := NewServer()
 
-		// Initialize the server
-		serverMux = http.NewServeMux()
-
-		// Add a default handler
-		serverMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-			handleRequest(w, r, Page{})
-		})
-
-		server = &http.Server{Addr: ":3000", Handler: serverMux}
-
-		// Start the server
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-
-			log.Println("Listening on :3000...")
-			if err := server.ListenAndServe(); err != http.ErrServerClosed {
-				log.Fatal(err)
-			}
-		}()
+		server.Start()
 
 		for {
 			fmt.Println("\nInteractive Menu:")
@@ -69,34 +89,11 @@ var websiteCmd = &cobra.Command{
 
 			switch command {
 			case "1":
-				page := Page{
-					Title: promptForTitle(),
-					// Set other fields as needed
-				}
-				serverMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-					handleRequest(w, r, page)
-				})
-
-				if server != nil {
-					if err := server.Close(); err != nil {
-						log.Fatal(err)
-					}
-					wg.Wait() // Wait for the server to shutdown
-				}
-
-				server = &http.Server{Addr: ":3000", Handler: serverMux}
-
-				wg.Add(1)
-				go func() {
-					defer wg.Done()
-
-					log.Println("Listening on :3000...")
-					if err := server.ListenAndServe(); err != http.ErrServerClosed {
-						log.Fatal(err)
-					}
-				}()
+				title := promptForTitle()
+				server.UpdateTitle(title)
 			case "2":
 				fmt.Println("Exiting...")
+				server.Stop()
 				return
 			default:
 				fmt.Println("Invalid command. Please enter a number from 1 to 2.")
