@@ -1,11 +1,14 @@
 package cmd
 
 import (
+	"bufio"
 	"bytes"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -21,7 +24,11 @@ var websiteCmd = &cobra.Command{
 	particularly useful for beginner developers who need to
 	quickly	set up a static website.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		http.HandleFunc("/", handleRequest)
+		newTitle := promptForTitle()
+
+		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			handleRequest(w, r, newTitle)
+		})
 
 		log.Println("Listening on :3000...")
 		err := http.ListenAndServe(":3000", nil)
@@ -31,7 +38,14 @@ var websiteCmd = &cobra.Command{
 	},
 }
 
-func handleRequest(w http.ResponseWriter, r *http.Request) {
+func promptForTitle() string {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("Enter new title: ")
+	newTitle, _ := reader.ReadString('\n')
+	return strings.TrimSpace(newTitle) // Remove newline
+}
+
+func handleRequest(w http.ResponseWriter, r *http.Request, newTitle string) {
 	content, err := readFile("static/index.html")
 	if err != nil {
 		log.Fatal(err)
@@ -42,7 +56,7 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	changeTitle(doc, "New Title")
+	changeTitle(doc, newTitle)
 
 	var buf bytes.Buffer
 	err = html.Render(&buf, doc)
