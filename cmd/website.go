@@ -22,6 +22,10 @@ var (
 	wg        sync.WaitGroup
 )
 
+type Page struct {
+	Title string
+}
+
 // websiteCmd represents the website command
 var websiteCmd = &cobra.Command{
 	Use:   "website",
@@ -32,6 +36,27 @@ var websiteCmd = &cobra.Command{
 	quickly	set up a static website.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		reader := bufio.NewReader(os.Stdin)
+
+		// Initialize the server
+		serverMux = http.NewServeMux()
+
+		// Add a default handler
+		serverMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			handleRequest(w, r, Page{})
+		})
+
+		server = &http.Server{Addr: ":3000", Handler: serverMux}
+
+		// Start the server
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			log.Println("Listening on :3000...")
+			if err := server.ListenAndServe(); err != http.ErrServerClosed {
+				log.Fatal(err)
+			}
+		}()
 
 		for {
 			fmt.Println("\nInteractive Menu:")
@@ -44,11 +69,12 @@ var websiteCmd = &cobra.Command{
 
 			switch command {
 			case "1":
-				newTitle := promptForTitle()
-
-				serverMux = http.NewServeMux()
+				page := Page{
+					Title: promptForTitle(),
+					// Set other fields as needed
+				}
 				serverMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-					handleRequest(w, r, newTitle)
+					handleRequest(w, r, page)
 				})
 
 				if server != nil {
@@ -86,7 +112,7 @@ func promptForTitle() string {
 	return strings.TrimSpace(newTitle) // Remove newline
 }
 
-func handleRequest(w http.ResponseWriter, r *http.Request, newTitle string) {
+func handleRequest(w http.ResponseWriter, r *http.Request, page Page) {
 	content, err := readFile("static/index.html")
 	if err != nil {
 		log.Fatal(err)
@@ -97,7 +123,9 @@ func handleRequest(w http.ResponseWriter, r *http.Request, newTitle string) {
 		log.Fatal(err)
 	}
 
-	changeTitle(doc, newTitle)
+	if page.Title != "" {
+		changeTitle(doc, page.Title)
+	}
 
 	var buf bytes.Buffer
 	err = html.Render(&buf, doc)
