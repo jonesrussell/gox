@@ -19,6 +19,7 @@ var websiteCmd = &cobra.Command{
 	quickly	set up a static website.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		reader := bufio.NewReader(os.Stdin)
+
 		server := httpserver.NewServer()
 
 		server.Start()
@@ -34,21 +35,32 @@ var websiteCmd = &cobra.Command{
 
 			switch command {
 			case "1":
-				title, err := promptForTitle()
+				err := handleChangeTitle(server)
 				if err != nil {
 					fmt.Println("Error updating title:", err)
-					continue
 				}
-				server.UpdateTitle(title)
 			case "2":
-				fmt.Println("Exiting...")
-				server.Stop()
+				handleExit(server)
 				return
 			default:
 				fmt.Println("Invalid command. Please enter a number from 1 to 2.")
 			}
 		}
 	},
+}
+
+func handleChangeTitle(server *httpserver.Server) error {
+	title, err := promptForTitle()
+	if err != nil {
+		return err
+	}
+	server.UpdateTitle(title)
+	return nil
+}
+
+func handleExit(server *httpserver.Server) {
+	fmt.Println("Exiting...")
+	server.Stop()
 }
 
 func promptForTitle() (string, error) {
