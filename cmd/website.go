@@ -9,10 +9,17 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/spf13/cobra"
 	"golang.org/x/net/html"
+)
+
+var (
+	serverMux *http.ServeMux
+	server    *http.Server
+	wg        sync.WaitGroup
 )
 
 // websiteCmd represents the website command
@@ -24,13 +31,14 @@ var websiteCmd = &cobra.Command{
 	particularly useful for beginner developers who need to
 	quickly	set up a static website.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		reader := bufio.NewReader(os.Stdin)
+
 		for {
 			fmt.Println("\nInteractive Menu:")
 			fmt.Println("1. Change title")
 			fmt.Println("2. Exit")
 			fmt.Print("Enter command number: ")
 
-			reader := bufio.NewReader(os.Stdin)
 			command, _ := reader.ReadString('\n')
 			command = strings.TrimSpace(command) // Remove newline
 
@@ -38,15 +46,29 @@ var websiteCmd = &cobra.Command{
 			case "1":
 				newTitle := promptForTitle()
 
-				http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+				serverMux = http.NewServeMux()
+				serverMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 					handleRequest(w, r, newTitle)
 				})
 
-				log.Println("Listening on :3000...")
-				err := http.ListenAndServe(":3000", nil)
-				if err != nil {
-					log.Fatal(err)
+				if server != nil {
+					if err := server.Close(); err != nil {
+						log.Fatal(err)
+					}
+					wg.Wait() // Wait for the server to shutdown
 				}
+
+				server = &http.Server{Addr: ":3000", Handler: serverMux}
+
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+
+					log.Println("Listening on :3000...")
+					if err := server.ListenAndServe(); err != http.ErrServerClosed {
+						log.Fatal(err)
+					}
+				}()
 			case "2":
 				fmt.Println("Exiting...")
 				return
