@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/net/html"
 )
 
 // websiteCmd represents the website command
@@ -36,7 +37,20 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	http.ServeContent(w, r, "index.html", time.Now(), bytes.NewReader(content))
+	doc, err := html.Parse(bytes.NewReader(content))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	changeTitle(doc, "New Title")
+
+	var buf bytes.Buffer
+	err = html.Render(&buf, doc)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	http.ServeContent(w, r, "index.html", time.Now(), bytes.NewReader(buf.Bytes()))
 }
 
 func readFile(path string) ([]byte, error) {
@@ -47,6 +61,19 @@ func readFile(path string) ([]byte, error) {
 	defer file.Close()
 
 	return io.ReadAll(file)
+}
+
+func changeTitle(n *html.Node, newTitle string) {
+	if n.Type == html.ElementNode && n.Data == "title" {
+		if n.FirstChild != nil {
+			n.FirstChild.Data = newTitle
+		}
+		return
+	}
+
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		changeTitle(c, newTitle)
+	}
 }
 
 func init() {
