@@ -34,7 +34,11 @@ var websiteCmd = &cobra.Command{
 
 			switch command {
 			case "1":
-				title := promptForTitle()
+				title, err := promptForTitle()
+				if err != nil {
+					fmt.Println("Error updating title:", err)
+					continue
+				}
 				server.UpdateTitle(title)
 			case "2":
 				fmt.Println("Exiting...")
@@ -47,11 +51,14 @@ var websiteCmd = &cobra.Command{
 	},
 }
 
-func promptForTitle() string {
+func promptForTitle() (string, error) {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("Enter new title: ")
-	newTitle, _ := reader.ReadString('\n')
-	return strings.TrimSpace(newTitle) // Remove newline
+	newTitle, err := reader.ReadString('\n')
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(newTitle), nil // Remove newline
 }
 
 func init() {

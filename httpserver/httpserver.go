@@ -17,10 +17,11 @@ type Page struct {
 }
 
 type Server struct {
-	mux  *http.ServeMux
-	srv  *http.Server
-	wg   sync.WaitGroup
-	page Page
+	mux     *http.ServeMux
+	srv     *http.Server
+	wg      sync.WaitGroup
+	page    Page
+	content []byte
 }
 
 func NewServer() *Server {
@@ -30,9 +31,19 @@ func NewServer() *Server {
 	}
 }
 
-func (s *Server) Start() {
+func (s *Server) Start() error {
+	var err error
+	s.content, err = readFile("static/index.html")
+	if err != nil {
+		return err
+	}
+
 	s.mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		handleRequest(w, r, s.page)
+		err := handleRequest(w, r, s.page, s.content)
+		if err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			log.Println(err)
+		}
 	})
 
 	s.srv.Handler = s.mux
@@ -43,18 +54,22 @@ func (s *Server) Start() {
 
 		log.Println("Listening on :3000...")
 		if err := s.srv.ListenAndServe(); err != http.ErrServerClosed {
-			log.Fatal(err)
+			log.Println(err)
 		}
 	}()
+
+	return nil
 }
 
-func (s *Server) Stop() {
+func (s *Server) Stop() error {
 	if s.srv != nil {
-		if err := s.srv.Close(); err != nil {
-			log.Fatal(err)
+		err := s.srv.Close()
+		if err != nil {
+			return err
 		}
 		s.wg.Wait() // Wait for the server to shutdown
 	}
+	return nil
 }
 
 func changeTitle(n *html.Node, newTitle string) {
@@ -84,15 +99,10 @@ func readFile(path string) ([]byte, error) {
 	return io.ReadAll(file)
 }
 
-func handleRequest(w http.ResponseWriter, r *http.Request, page Page) {
-	content, err := readFile("static/index.html")
-	if err != nil {
-		log.Fatal(err)
-	}
-
+func handleRequest(w http.ResponseWriter, r *http.Request, page Page, content []byte) error {
 	doc, err := html.Parse(bytes.NewReader(content))
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	if page.Title != "" {
@@ -102,8 +112,9 @@ func handleRequest(w http.ResponseWriter, r *http.Request, page Page) {
 	var buf bytes.Buffer
 	err = html.Render(&buf, doc)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	http.ServeContent(w, r, "index.html", time.Now(), bytes.NewReader(buf.Bytes()))
+	return nil
 }
