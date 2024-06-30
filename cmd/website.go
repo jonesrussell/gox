@@ -24,16 +24,35 @@ var websiteCmd = &cobra.Command{
 	particularly useful for beginner developers who need to
 	quickly	set up a static website.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		newTitle := promptForTitle()
+		for {
+			fmt.Println("\nInteractive Menu:")
+			fmt.Println("1. Change title")
+			fmt.Println("2. Exit")
+			fmt.Print("Enter command number: ")
 
-		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-			handleRequest(w, r, newTitle)
-		})
+			reader := bufio.NewReader(os.Stdin)
+			command, _ := reader.ReadString('\n')
+			command = strings.TrimSpace(command) // Remove newline
 
-		log.Println("Listening on :3000...")
-		err := http.ListenAndServe(":3000", nil)
-		if err != nil {
-			log.Fatal(err)
+			switch command {
+			case "1":
+				newTitle := promptForTitle()
+
+				http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+					handleRequest(w, r, newTitle)
+				})
+
+				log.Println("Listening on :3000...")
+				err := http.ListenAndServe(":3000", nil)
+				if err != nil {
+					log.Fatal(err)
+				}
+			case "2":
+				fmt.Println("Exiting...")
+				return
+			default:
+				fmt.Println("Invalid command. Please enter a number from 1 to 2.")
+			}
 		}
 	},
 }
