@@ -1,45 +1,29 @@
 package httpserver
 
 import (
-	"bytes"
-	"io"
 	"log"
 	"net/http"
-	"os"
 	"sync"
-	"time"
-
-	"golang.org/x/net/html"
 )
 
-type Page struct {
-	Title string
-}
-
 type Server struct {
-	mux     *http.ServeMux
-	srv     *http.Server
-	wg      sync.WaitGroup
-	page    Page
-	content []byte
+	mux  *http.ServeMux
+	srv  *http.Server
+	wg   sync.WaitGroup
+	page *Page
 }
 
 func NewServer() *Server {
 	return &Server{
-		mux: http.NewServeMux(),
-		srv: &http.Server{Addr: ":3000"},
+		mux:  http.NewServeMux(),
+		srv:  &http.Server{Addr: ":3000"},
+		page: NewPage(""),
 	}
 }
 
 func (s *Server) Start() error {
-	var err error
-	s.content, err = readFile("static/index.html")
-	if err != nil {
-		return err
-	}
-
 	s.mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		err := handleRequest(w, r, s.page, s.content)
+		err := handleRequest(w, r, s.page)
 		if err != nil {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			log.Println(err)
@@ -72,49 +56,6 @@ func (s *Server) Stop() error {
 	return nil
 }
 
-func changeTitle(n *html.Node, newTitle string) {
-	if n.Type == html.ElementNode && n.Data == "title" {
-		if n.FirstChild != nil {
-			n.FirstChild.Data = newTitle
-		}
-		return
-	}
-
-	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		changeTitle(c, newTitle)
-	}
-}
-
 func (s *Server) UpdateTitle(title string) {
 	s.page.Title = title
-}
-
-func readFile(path string) ([]byte, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	return io.ReadAll(file)
-}
-
-func handleRequest(w http.ResponseWriter, r *http.Request, page Page, content []byte) error {
-	doc, err := html.Parse(bytes.NewReader(content))
-	if err != nil {
-		return err
-	}
-
-	if page.Title != "" {
-		changeTitle(doc, page.Title)
-	}
-
-	var buf bytes.Buffer
-	err = html.Render(&buf, doc)
-	if err != nil {
-		return err
-	}
-
-	http.ServeContent(w, r, "index.html", time.Now(), bytes.NewReader(buf.Bytes()))
-	return nil
 }
