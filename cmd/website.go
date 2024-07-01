@@ -3,18 +3,18 @@ package cmd
 
 import (
 	"fmt"
-	"jonesrussell/gocreate/httpserver"
 	"jonesrussell/gocreate/menu"
+	"jonesrussell/gocreate/websiteserver"
 
 	"github.com/spf13/cobra"
 )
 
 type WebsiteCommand struct {
-	server httpserver.Server
+	server websiteserver.WebsiteServerInterface
 	menu   *menu.Menu
 }
 
-func NewWebsiteCommand(server httpserver.Server, menu *menu.Menu) *cobra.Command {
+func NewWebsiteCommand(server websiteserver.WebsiteServerInterface, menu *menu.Menu) *cobra.Command {
 	wc := &WebsiteCommand{server: server, menu: menu}
 
 	return &cobra.Command{
@@ -39,7 +39,7 @@ func (wc *WebsiteCommand) run(cmd *cobra.Command, args []string) {
 }
 
 func init() {
-	server := httpserver.NewServer()
+	server := websiteserver.NewServer()
 	m := menu.NewMenu(&server)
 	rootCmd.AddCommand(NewWebsiteCommand(server, m))
 }

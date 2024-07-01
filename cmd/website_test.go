@@ -2,8 +2,8 @@ package cmd_test
 
 import (
 	"jonesrussell/gocreate/cmd"
-	"jonesrussell/gocreate/httpserver"
 	"jonesrussell/gocreate/menu"
+	"jonesrussell/gocreate/websiteserver"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -14,11 +14,11 @@ func TestWebsiteCmdAddedOnce(t *testing.T) {
 		Use: "root",
 	}
 
-	server := httpserver.NewServer()
-	m := menu.NewMenu(&server)
+	mockServer := websiteserver.NewMockServer()
+	m := menu.NewMockMenu(&mockServer)
 
 	// Manually add the websiteCmd to rootCmd
-	rootCmd.AddCommand(cmd.NewWebsiteCommand(server, m))
+	rootCmd.AddCommand(cmd.NewWebsiteCommand(mockServer, m.(*menu.Menu)))
 
 	var count int
 	for _, c := range rootCmd.Commands() {

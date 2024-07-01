@@ -8,15 +8,24 @@ import (
 	"os"
 	"strings"
 
-	"jonesrussell/gocreate/httpserver"
+	"jonesrussell/gocreate/websiteserver"
 )
+
+type MenuInterface interface {
+	Display()
+	handleChangeTitle() error
+	handleExit()
+}
 
 type Menu struct {
 	reader *bufio.Reader
-	server *httpserver.Server
+	server *websiteserver.WebsiteServerInterface
 }
 
-func NewMenu(server *httpserver.Server) *Menu {
+// Ensure Menu implements MenuInterface
+var _ MenuInterface = &Menu{}
+
+func NewMenu(server *websiteserver.WebsiteServerInterface) *Menu {
 	return &Menu{
 		reader: bufio.NewReader(os.Stdin),
 		server: server,

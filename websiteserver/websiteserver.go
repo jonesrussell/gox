@@ -1,4 +1,4 @@
-package httpserver
+package websiteserver
 
 import (
 	"log"
@@ -6,15 +6,15 @@ import (
 	"sync"
 )
 
-// Define the Server interface
-type Server interface {
+// Define the WebsiteServerInterface interface
+type WebsiteServerInterface interface {
 	Start() error
 	Stop() error
 	UpdateTitle(title string)
 }
 
-// serverImpl is the actual implementation of the Server interface
-type serverImpl struct {
+// websiteServerImpl is the actual implementation of the Server interface
+type websiteServerImpl struct {
 	mux  *http.ServeMux
 	srv  *http.Server
 	wg   sync.WaitGroup
@@ -22,15 +22,15 @@ type serverImpl struct {
 }
 
 // NewServer returns a new Server
-func NewServer() Server {
-	return &serverImpl{
+func NewServer() WebsiteServerInterface {
+	return &websiteServerImpl{
 		mux:  http.NewServeMux(),
 		srv:  &http.Server{Addr: ":3000"},
 		page: NewPage(""),
 	}
 }
 
-func (s *serverImpl) Start() error {
+func (s *websiteServerImpl) Start() error {
 	s.mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		err := handleRequest(w, r, s.page)
 		if err != nil {
@@ -54,7 +54,7 @@ func (s *serverImpl) Start() error {
 	return nil
 }
 
-func (s *serverImpl) Stop() error {
+func (s *websiteServerImpl) Stop() error {
 	if s.srv != nil {
 		err := s.srv.Close()
 		if err != nil {
@@ -65,6 +65,6 @@ func (s *serverImpl) Stop() error {
 	return nil
 }
 
-func (s *serverImpl) UpdateTitle(title string) {
+func (s *websiteServerImpl) UpdateTitle(title string) {
 	s.page.Title = title
 }
