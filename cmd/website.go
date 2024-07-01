@@ -11,10 +11,10 @@ import (
 
 type WebsiteCommand struct {
 	server websiteserver.WebsiteServerInterface
-	menu   *menu.Menu
+	menu   menu.MenuInterface
 }
 
-func NewWebsiteCommand(server websiteserver.WebsiteServerInterface, menu *menu.Menu) *cobra.Command {
+func NewWebsiteCommand(server websiteserver.WebsiteServerInterface, menu menu.MenuInterface) *cobra.Command {
 	wc := &WebsiteCommand{server: server, menu: menu}
 
 	return &cobra.Command{

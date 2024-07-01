@@ -13,7 +13,7 @@ type Page struct {
 }
 
 func NewPage(title string) *Page {
-	content, err := readFile("static/index.html")
+	content, err := ReadFile("static/index.html")
 	if err != nil {
 		log.Fatal(err)
 	}

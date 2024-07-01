@@ -1,21 +1,14 @@
 package websiteserver
 
 import (
-	"io"
 	"os"
+
+	"jonesrussell/gocreate/utils"
 
 	"golang.org/x/net/html"
 )
 
-func readFile(path string) ([]byte, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	return io.ReadAll(file)
-}
+var ReadFile utils.FileReader = os.ReadFile
 
 func changeTitle(n *html.Node, newTitle string) {
 	if n.Type == html.ElementNode && n.Data == "title" {
