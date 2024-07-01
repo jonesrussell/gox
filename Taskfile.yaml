@@ -3,4 +3,4 @@ version: '3'
 tasks:
   build:
     cmds:
-      - go build -v main.go -o bin/gocreate
+      - go build -v -o bin/gocreate main.go
