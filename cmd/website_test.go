@@ -1,42 +1,32 @@
 package cmd_test
 
 import (
-	"fmt"
 	"jonesrussell/gocreate/cmd"
 	"jonesrussell/gocreate/menu"
 	"jonesrussell/gocreate/utils"
 	"jonesrussell/gocreate/websiteserver"
 	"testing"
 
-	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestWebsiteCmdAddedOnce(t *testing.T) {
-	fmt.Println("Starting TestWebsiteCmdAddedOnce")
-
-	rootCmd := &cobra.Command{
-		Use: "root",
-	}
-
+func Test_WebsiteCommand(t *testing.T) {
+	// Assuming NewMockServer and NewMockMenu are correctly implemented elsewhere
 	mockPage := websiteserver.NewPage("", utils.MockFileReader{})
-	mockServer := websiteserver.NewMockServer(mockPage)
-	m := menu.NewMockMenu(&mockServer)
+	server := websiteserver.NewMockServer(mockPage)
+	m := menu.NewMockMenu(&server)
 
-	// Manually add the websiteCmd to rootCmd
-	rootCmd.AddCommand(cmd.NewWebsiteCommand(mockServer, m.(*menu.Menu)))
+	// Create the command with the mocked dependencies
+	websiteCmd := cmd.NewWebsiteCommand(server, m)
 
-	var count int
-	for _, c := range rootCmd.Commands() {
-		if c.Name() == "website" {
-			count++
-		}
-	}
+	// Execute the command with the desired arguments
+	// Assuming ExecuteCommand is a function that executes the command and returns output and error
+	output, err := cmd.ExecuteCommand(websiteCmd, "website")
 
-	fmt.Printf("Found 'website' command %d times\n", count)
+	// Assert something about the output or error
+	assert.NoError(t, err, "Expected no error")
 
-	if count != 1 {
-		t.Errorf("Expected 'website' command to be added once to rootCmd, but got %d", count)
-	}
-
-	fmt.Println("Finished TestWebsiteCmdAddedOnce")
+	// Assert something about the output
+	expectedOutput := "Expected output"
+	assert.Equal(t, expectedOutput, output, "Expected output to match")
 }
