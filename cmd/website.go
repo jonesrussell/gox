@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var websiteCmd = &cobra.Command{
+var WebsiteCmd = &cobra.Command{
 	Use:   "website",
 	Short: "Create a no code website from the command line",
 	Long: `The 'website' command allows you to create a
@@ -31,5 +31,5 @@ var websiteCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(websiteCmd)
+	rootCmd.AddCommand(WebsiteCmd)
 }
