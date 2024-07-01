@@ -1,6 +1,7 @@
 package websiteserver
 
 import (
+	"jonesrussell/gocreate/utils"
 	"log"
 	"net/http"
 	"sync"
@@ -23,10 +24,13 @@ type websiteServerImpl struct {
 
 // NewServer returns a new Server
 func NewServer() WebsiteServerInterface {
+	// Explicitly use the FileReader interface when creating a new Page instance
+	page := NewPage("", utils.OSFileReader{}) // utils.OSFileReader{} is of type utils.FileReader
+
 	return &websiteServerImpl{
 		mux:  http.NewServeMux(),
 		srv:  &http.Server{Addr: ":3000"},
-		page: NewPage(""),
+		page: page,
 	}
 }
 

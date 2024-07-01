@@ -2,6 +2,7 @@ package websiteserver
 
 import (
 	"bytes"
+	"jonesrussell/gocreate/utils"
 	"log"
 
 	"golang.org/x/net/html"
@@ -12,8 +13,9 @@ type Page struct {
 	content []byte
 }
 
-func NewPage(title string) *Page {
-	content, err := ReadFile("static/index.html")
+// Modify NewPage to accept a FileReader as an argument
+func NewPage(title string, fr utils.FileReader) *Page {
+	content, err := fr.ReadFile("static/index.html") // Use the passed FileReader
 	if err != nil {
 		log.Fatal(err)
 	}
