@@ -54,11 +54,11 @@ func (m *Menu) handleChangeTitle() error {
 	if err != nil {
 		return err
 	}
-	m.server.UpdateTitle(strings.TrimSpace(newTitle)) // Remove newline
+	(*m.server).UpdateTitle(strings.TrimSpace(newTitle)) // Remove newline
 	return nil
 }
 
 func (m *Menu) handleExit() {
 	fmt.Println("Exiting...")
-	m.server.Stop()
+	(*m.server).Stop()
 }

@@ -6,22 +6,31 @@ import (
 	"sync"
 )
 
-type Server struct {
+// Define the Server interface
+type Server interface {
+	Start() error
+	Stop() error
+	UpdateTitle(title string)
+}
+
+// serverImpl is the actual implementation of the Server interface
+type serverImpl struct {
 	mux  *http.ServeMux
 	srv  *http.Server
 	wg   sync.WaitGroup
 	page *Page
 }
 
-func NewServer() *Server {
-	return &Server{
+// NewServer returns a new Server
+func NewServer() Server {
+	return &serverImpl{
 		mux:  http.NewServeMux(),
 		srv:  &http.Server{Addr: ":3000"},
 		page: NewPage(""),
 	}
 }
 
-func (s *Server) Start() error {
+func (s *serverImpl) Start() error {
 	s.mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		err := handleRequest(w, r, s.page)
 		if err != nil {
@@ -45,7 +54,7 @@ func (s *Server) Start() error {
 	return nil
 }
 
-func (s *Server) Stop() error {
+func (s *serverImpl) Stop() error {
 	if s.srv != nil {
 		err := s.srv.Close()
 		if err != nil {
@@ -56,6 +65,6 @@ func (s *Server) Stop() error {
 	return nil
 }
 
-func (s *Server) UpdateTitle(title string) {
+func (s *serverImpl) UpdateTitle(title string) {
 	s.page.Title = title
 }
