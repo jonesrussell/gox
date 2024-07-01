@@ -1,8 +1,10 @@
 package cmd_test
 
 import (
+	"fmt"
 	"jonesrussell/gocreate/cmd"
 	"jonesrussell/gocreate/menu"
+	"jonesrussell/gocreate/utils"
 	"jonesrussell/gocreate/websiteserver"
 	"testing"
 
@@ -10,11 +12,14 @@ import (
 )
 
 func TestWebsiteCmdAddedOnce(t *testing.T) {
+	fmt.Println("Starting TestWebsiteCmdAddedOnce")
+
 	rootCmd := &cobra.Command{
 		Use: "root",
 	}
 
-	mockServer := websiteserver.NewMockServer()
+	mockPage := websiteserver.NewPage("", utils.MockFileReader{})
+	mockServer := websiteserver.NewMockServer(mockPage)
 	m := menu.NewMockMenu(&mockServer)
 
 	// Manually add the websiteCmd to rootCmd
@@ -27,7 +32,11 @@ func TestWebsiteCmdAddedOnce(t *testing.T) {
 		}
 	}
 
+	fmt.Printf("Found 'website' command %d times\n", count)
+
 	if count != 1 {
 		t.Errorf("Expected 'website' command to be added once to rootCmd, but got %d", count)
 	}
+
+	fmt.Println("Finished TestWebsiteCmdAddedOnce")
 }
