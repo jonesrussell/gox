@@ -9,7 +9,9 @@
 			"extensions": [
 				"phind.phind",
 				"eamodio.gitlens",
-				"GitHub.vscode-github-actions"
+				"GitHub.vscode-github-actions",
+				"premparihar.gotestexplorer",
+				"nhoizey.gremlins"
 			]
 		}
 	},
