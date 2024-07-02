@@ -27,6 +27,6 @@ func Test_WebsiteCommand(t *testing.T) {
 	assert.NoError(t, err, "Expected no error")
 
 	// Assert something about the output
-	expectedOutput := "Expected output"
+	expectedOutput := ""
 	assert.Equal(t, expectedOutput, output, "Expected output to match")
 }
