@@ -9,7 +9,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewWebsiteCommand(server websiteserver.WebsiteServerInterface, menu menu.MenuInterface) *cobra.Command {
+func NewWebsiteCommand(
+	server websiteserver.WebsiteServerInterface,
+	menu menu.MenuInterface,
+) *cobra.Command {
 	websiteCmd := &cobra.Command{
 		Use:   "website",
 		Short: "Create a no code website from the command line",
