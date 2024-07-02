@@ -6,6 +6,7 @@ import (
 	"jonesrussell/gocreate/websiteserver"
 	"log"
 
+	"github.com/rivo/tview"
 	"github.com/spf13/cobra"
 )
 
@@ -33,7 +34,20 @@ func (w *WebsiteCommand) Command() *cobra.Command {
 			particularly useful for beginner developers who need to
 			quickly	set up a static website.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			err := w.server.Start()
+			debug, err := rootCmd.Flags().GetBool("debug")
+			if err != nil {
+				log.Panicln("Can't get debug flag")
+			}
+
+			if debug {
+				app := tview.NewApplication()
+				box := tview.NewBox().SetBorder(true).SetTitle("Debug mode enabled")
+				if err := app.SetRoot(box, true).Run(); err != nil {
+					panic(err)
+				}
+			}
+
+			err = w.server.Start()
 			if err != nil {
 				log.Println("Error starting server:", err)
 				return

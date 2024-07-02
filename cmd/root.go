@@ -32,7 +32,7 @@ func ExecuteCommand(root *cobra.Command, args ...string) (output string, err err
 
 var rootCmd = &cobra.Command{
 	Use:   "gocreate",
-	Short: "Create things!",
+	Short: "Create webs things!",
 }
 
 func NewRootCmd(server websiteserver.WebsiteServerInterface, menu menu.MenuInterface) *cobra.Command {
