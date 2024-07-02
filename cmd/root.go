@@ -9,6 +9,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var Debug bool // Global variable for debug mode
+
 // ExecuteCommandC is a helper function that will execute the Cobra command
 // and return the command, output, and any errors that occurred.
 func ExecuteCommandC(root *cobra.Command, args ...string) (c *cobra.Command, output string, err error) {
@@ -34,7 +36,8 @@ var rootCmd = &cobra.Command{
 }
 
 func NewRootCmd(server websiteserver.WebsiteServerInterface, menu menu.MenuInterface) *cobra.Command {
-	rootCmd.AddCommand(NewWebsiteCommand(server, menu)) // Use the factory function for the website command
+	websiteCommand := NewWebsiteCommand(server, menu)
+	rootCmd.AddCommand(websiteCommand.Command())
 	return rootCmd
 }
 
@@ -48,9 +51,7 @@ func Execute() {
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
+	rootCmd.PersistentFlags().BoolVarP(&Debug, "debug", "d", false, "Enable debug mode")
 
 	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.gocreate.yaml)")
 

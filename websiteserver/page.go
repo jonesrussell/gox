@@ -10,11 +10,13 @@ import (
 
 type Page struct {
 	Title   string
+	Body    string
 	content []byte
+	updater *WebsiteUpdater
 }
 
-// Modify NewPage to accept a FileReader as an argument
-func NewPage(title string, fr utils.FileReader) *Page {
+// Modify NewPage to accept a FileReader and a WebsiteUpdater as arguments
+func NewPage(title string, body string, fr utils.FileReader, updater *WebsiteUpdater) *Page {
 	content, err := fr.ReadFile("static/index.html") // Use the passed FileReader
 	if err != nil {
 		log.Fatal(err)
@@ -22,7 +24,9 @@ func NewPage(title string, fr utils.FileReader) *Page {
 
 	return &Page{
 		Title:   title,
+		Body:    body,
 		content: content,
+		updater: updater,
 	}
 }
 
@@ -33,7 +37,11 @@ func (p *Page) Render() ([]byte, error) {
 	}
 
 	if p.Title != "" {
-		changeTitle(doc, p.Title)
+		p.updater.ChangeTitle(doc, p.Title)
+	}
+
+	if p.Body != "" {
+		p.updater.ChangeBody(doc, p.Body)
 	}
 
 	var buf bytes.Buffer

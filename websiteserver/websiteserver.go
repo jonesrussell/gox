@@ -1,6 +1,7 @@
 package websiteserver
 
 import (
+	"jonesrussell/gocreate/debug"
 	"jonesrussell/gocreate/utils"
 	"log"
 	"net/http"
@@ -12,25 +13,31 @@ type WebsiteServerInterface interface {
 	Start() error
 	Stop() error
 	UpdateTitle(title string)
+	UpdateBody(body string)
 }
 
 // websiteServerImpl is the actual implementation of the Server interface
 type websiteServerImpl struct {
-	mux  *http.ServeMux
-	srv  *http.Server
-	wg   sync.WaitGroup
-	page *Page
+	debugger debug.Debugger
+	mux      *http.ServeMux
+	srv      *http.Server
+	wg       sync.WaitGroup
+	page     *Page
 }
 
 // NewServer returns a new Server
-func NewServer() WebsiteServerInterface {
+func NewServer(debugger debug.Debugger) WebsiteServerInterface {
+	// Create a new WebsiteUpdater
+	updater := NewWebsiteUpdater(debugger)
+
 	// Explicitly use the FileReader interface when creating a new Page instance
-	page := NewPage("", utils.OSFileReader{}) // utils.OSFileReader{} is of type utils.FileReader
+	page := NewPage("", "", utils.OSFileReader{}, updater) // utils.OSFileReader{} is of type utils.FileReader
 
 	return &websiteServerImpl{
-		mux:  http.NewServeMux(),
-		srv:  &http.Server{Addr: ":3000"},
-		page: page,
+		debugger: debugger,
+		mux:      http.NewServeMux(),
+		srv:      &http.Server{Addr: ":3000"},
+		page:     page,
 	}
 }
 
@@ -69,6 +76,12 @@ func (s *websiteServerImpl) Stop() error {
 	return nil
 }
 
-func (s *websiteServerImpl) UpdateTitle(title string) {
-	s.page.Title = title
+func (s *websiteServerImpl) UpdateTitle(content string) {
+	s.page.Title = content
+	s.debugger.Debug("Updated title to: " + content)
+}
+
+func (s *websiteServerImpl) UpdateBody(content string) {
+	s.page.Body = content
+	s.debugger.Debug("Updated body to: " + content)
 }

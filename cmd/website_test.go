@@ -2,6 +2,7 @@ package cmd_test
 
 import (
 	"jonesrussell/gocreate/cmd"
+	"jonesrussell/gocreate/debug"
 	"jonesrussell/gocreate/menu"
 	"jonesrussell/gocreate/utils"
 	"jonesrussell/gocreate/websiteserver"
@@ -11,13 +12,22 @@ import (
 )
 
 func Test_WebsiteCommand(t *testing.T) {
-	// Assuming NewMockServer and NewMockMenu are correctly implemented elsewhere
-	mockPage := websiteserver.NewPage("", utils.MockFileReader{})
+	// Create a new LogDebugger
+	debugger := &debug.LogDebugger{}
+	debugger.Init()
+
+	// Create a new WebsiteUpdater
+	updater := websiteserver.NewWebsiteUpdater(debugger)
+
+	mockPage := websiteserver.NewPage("", "", utils.MockFileReader{}, updater)
 	server := websiteserver.NewMockServer(mockPage)
 	m := menu.NewMockMenu(&server)
 
-	// Create the command with the mocked dependencies
-	websiteCmd := cmd.NewWebsiteCommand(server, m)
+	// Create the WebsiteCommand with the mocked dependencies
+	websiteCommand := cmd.NewWebsiteCommand(server, m)
+
+	// Get the *cobra.Command from the WebsiteCommand
+	websiteCmd := websiteCommand.Command()
 
 	// Execute the command with the desired arguments
 	// Assuming ExecuteCommand is a function that executes the command and returns output and error

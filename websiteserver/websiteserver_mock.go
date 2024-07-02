@@ -33,6 +33,11 @@ func (ms *MockServer) UpdateTitle(title string) {
 	ms.page.Title = title
 }
 
+func (ms *MockServer) UpdateBody(content string) {
+	log.Printf("Updating body to: %s\n", content)
+	ms.page.Body = content
+}
+
 func NewMockServer(page *Page) WebsiteServerInterface {
 	log.Println("Creating NewMockServer instance")
 	return &websiteServerImpl{

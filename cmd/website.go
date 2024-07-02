@@ -9,10 +9,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type WebsiteCommand struct {
+	server websiteserver.WebsiteServerInterface
+	menu   menu.MenuInterface
+}
+
 func NewWebsiteCommand(
 	server websiteserver.WebsiteServerInterface,
 	menu menu.MenuInterface,
-) *cobra.Command {
+) *WebsiteCommand {
+	return &WebsiteCommand{
+		server: server,
+		menu:   menu,
+	}
+}
+
+func (w *WebsiteCommand) Command() *cobra.Command {
 	websiteCmd := &cobra.Command{
 		Use:   "website",
 		Short: "Create a no code website from the command line",
@@ -21,13 +33,13 @@ func NewWebsiteCommand(
 			particularly useful for beginner developers who need to
 			quickly	set up a static website.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			err := server.Start()
+			err := w.server.Start()
 			if err != nil {
 				fmt.Println("Error starting server:", err)
 				return
 			}
 
-			menu.Display()
+			w.menu.Display()
 		},
 	}
 
