@@ -2,9 +2,9 @@
 package cmd
 
 import (
-	"fmt"
 	"jonesrussell/gocreate/menu"
 	"jonesrussell/gocreate/websiteserver"
+	"log"
 
 	"github.com/spf13/cobra"
 )
@@ -35,7 +35,7 @@ func (w *WebsiteCommand) Command() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			err := w.server.Start()
 			if err != nil {
-				fmt.Println("Error starting server:", err)
+				log.Println("Error starting server:", err)
 				return
 			}
 

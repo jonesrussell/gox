@@ -17,7 +17,7 @@ type Page struct {
 
 // Modify NewPage to accept a FileReader and a WebsiteUpdater as arguments
 func NewPage(title string, body string, fr utils.FileReader, updater *WebsiteUpdater) *Page {
-	content, err := fr.ReadFile("static/index.html") // Use the passed FileReader
+	content, err := fr.ReadFile("static/index.html")
 	if err != nil {
 		log.Fatal(err)
 	}
