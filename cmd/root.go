@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"fmt"
 	"jonesrussell/gocreate/menu"
 	"jonesrussell/gocreate/websiteserver"
 	"os"
@@ -14,17 +15,23 @@ var Debug bool // Global variable for debug mode
 // ExecuteCommandC is a helper function that will execute the Cobra command
 // and return the command, output, and any errors that occurred.
 func ExecuteCommandC(root *cobra.Command, args ...string) (c *cobra.Command, output string, err error) {
+	fmt.Println("In ExecuteCommandC")
 	buf := new(bytes.Buffer)
 	root.SetOut(buf)
 	root.SetErr(buf)
 	root.SetArgs(args)
+	fmt.Println("before root.ExecuteC()")
 	c, err = root.ExecuteC()
+	fmt.Println("after root.ExecuteC()")
 	return c, buf.String(), err
 }
 
 // ExecuteCommand is a wrapper around ExecuteCommandC that only returns the output and error.
 func ExecuteCommand(root *cobra.Command, args ...string) (output string, err error) {
+	fmt.Println("In ExecuteCommand")
 	_, output, err = ExecuteCommandC(root, args...)
+	fmt.Println("after ExecuteCommandC")
+	fmt.Println(output)
 	return output, err
 }
 

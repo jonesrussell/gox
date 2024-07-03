@@ -20,6 +20,13 @@ type LogDebugger struct {
 	logger *log.Logger
 }
 
+// NewLogDebugger creates a new instance of LogDebugger
+func NewLogDebugger() *LogDebugger {
+	debugger := &LogDebugger{}
+	debugger.Init()
+	return debugger
+}
+
 // Init initializes the LogDebugger
 func (l *LogDebugger) Init() error {
 	if l.Output == nil {

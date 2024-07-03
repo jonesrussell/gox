@@ -14,6 +14,14 @@ type MockServer struct {
 
 var _ WebsiteServerInterface = &MockServer{}
 
+func NewMockServer(page *Page) WebsiteServerInterface {
+	log.Println("Creating NewMockServer instance")
+	return &MockServer{
+		srv:  &http.Server{Addr: ":3000"},
+		page: page,
+	}
+}
+
 func (ms *MockServer) Start() error {
 	log.Println("Starting MockServer")
 	// Additional startup logic can be logged here
@@ -36,15 +44,6 @@ func (ms *MockServer) UpdateTitle(title string) {
 func (ms *MockServer) UpdateBody(content string) {
 	log.Printf("Updating body to: %s\n", content)
 	ms.page.Body = content
-}
-
-func NewMockServer(page *Page) WebsiteServerInterface {
-	log.Println("Creating NewMockServer instance")
-	return &websiteServerImpl{
-		mux:  http.NewServeMux(),
-		srv:  &http.Server{Addr: ":3000"},
-		page: page,
-	}
 }
 
 func (ms *MockServer) GetHTML() string {
