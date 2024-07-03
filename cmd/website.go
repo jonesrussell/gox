@@ -44,11 +44,17 @@ func (w *WebsiteCommand) Command() *cobra.Command {
 				log.Println("Debugging")
 			}
 
-			app := tview.NewApplication()
+			err = w.server.Start()
+			if err != nil {
+				log.Println("Error starting server:", err)
+				return
+			}
+
+			uiApp := tview.NewApplication()
 			uiPages := tview.NewPages()
 
 			// Get the menu content as a tview.List.
-			menuContent := w.menu.Display(app, uiPages)
+			menuContent := w.menu.Display(uiApp, uiPages)
 
 			// Create a TextView for the HTML representation of the website.
 			htmlView := tview.NewTextView().SetText(w.server.GetHTML())
@@ -72,14 +78,8 @@ func (w *WebsiteCommand) Command() *cobra.Command {
 				// Right column (1/3 x width of screen)
 				AddItem(htmlView, 0, 1, false)
 
-			if err := app.SetRoot(flex, true).SetFocus(menuContent).Run(); err != nil {
+			if err := uiApp.SetRoot(flex, true).SetFocus(menuContent).Run(); err != nil {
 				log.Fatalf("Error running application: %v", err)
-			}
-
-			err = w.server.Start()
-			if err != nil {
-				log.Println("Error starting server:", err)
-				return
 			}
 		},
 	}
