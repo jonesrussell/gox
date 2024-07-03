@@ -1,56 +1,34 @@
-package menu_test
+package menu
 
 import (
 	"testing"
 
-	"jonesrussell/gocreate/menu"
 	"jonesrussell/gocreate/websiteserver"
 
 	"github.com/stretchr/testify/assert"
 )
 
+func TestNewMenu(t *testing.T) {
+	// Mock the server
+	server := websiteserver.NewMockServer(&websiteserver.Page{})
+
+	// Create a new menu
+	menu := NewMenu(server, nil, nil)
+
+	// Assert that the menu was created with the correct options
+	assert.Equal(t, []string{"Change title", "Update body", "Exit"}, menu.GetOptions())
+}
+
 func TestCreateMenu(t *testing.T) {
-	mockServer := websiteserver.NewMockServer()
-	mockMenu := menu.NewMockMenu(&mockServer)
+	// Mock the server
+	server := websiteserver.NewMockServer(&websiteserver.Page{})
 
-	list := mockMenu.CreateMenu()
+	// Create a new menu
+	menu := NewMenu(server, nil, nil)
 
-	assert.NotNil(t, list, "Expected list to be not nil")
-}
+	// Create the menu
+	list := menu.CreateMenu()
 
-func TestHandleExit(t *testing.T) {
-	mockServer := websiteserver.NewMockServer()
-	mockMenu := menu.NewMockMenu(&mockServer)
-
-	mockMenu.HandleExit()
-
-	assert.True(t, mockMenu.ExitCalled, "Expected ExitCalled to be true")
-}
-
-func TestGetOptions(t *testing.T) {
-	mockServer := websiteserver.NewMockServer()
-	mockMenu := menu.NewMockMenu(&mockServer)
-
-	options := mockMenu.GetOptions()
-
-	expectedOptions := []string{"Option1", "Option2"}
-	assert.Equal(t, expectedOptions, options, "Expected options to be equal to expectedOptions")
-}
-
-func TestGetApp(t *testing.T) {
-	mockServer := websiteserver.NewMockServer()
-	mockMenu := menu.NewMockMenu(&mockServer)
-
-	app := mockMenu.GetApp()
-
-	assert.NotNil(t, app, "Expected app to be not nil")
-}
-
-func TestGetPages(t *testing.T) {
-	mockServer := websiteserver.NewMockServer()
-	mockMenu := menu.NewMockMenu(&mockServer)
-
-	pages := mockMenu.GetPages()
-
-	assert.NotNil(t, pages, "Expected pages to be not nil")
+	// Assert that the list has the correct number of items
+	assert.Equal(t, 3, list.GetItemCount())
 }
