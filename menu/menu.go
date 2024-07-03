@@ -62,34 +62,41 @@ func (m *menuImpl) CreateMenu() *tview.List {
 }
 
 func (m *menuImpl) handleChangeTitle() {
+	focused := m.uiApp.GetFocus()
 	form := tview.NewForm()
 	form.AddInputField("New title", "", 20, nil, nil)
 	form.AddButton("Submit", func() {
 		newTitle := form.GetFormItemByLabel("New title").(*tview.InputField).GetText()
 		(*m.server).UpdateTitle(strings.TrimSpace(newTitle))
-		m.uiApp.SetFocus(m.uiPages)
+		m.menuPages.RemovePage("ChangeTitle")
+		m.uiApp.SetFocus(focused)
 	})
-	form.SetBorder(true).SetTitle("Enter new title").SetTitleAlign(tview.AlignLeft)
-	m.uiPages.AddPage("ChangeTitle", form, true, true)
+	form.
+		SetBorder(true).
+		SetTitle("Enter new title").
+		SetTitleAlign(tview.AlignLeft)
+	m.menuPages.AddPage("ChangeTitle", form, true, true)
 	m.uiApp.SetFocus(form)
 }
 
 func (m *menuImpl) handleChangeBody() {
+	focused := m.uiApp.GetFocus()
 	form := tview.NewForm()
 	form.AddInputField("New body", "", 20, nil, nil)
 	form.AddButton("Submit", func() {
 		newBody := form.GetFormItemByLabel("New body").(*tview.InputField).GetText()
 		(*m.server).UpdateBody(strings.TrimSpace(newBody))
-		m.uiApp.SetFocus(m.uiPages)
+		m.uiApp.SetFocus(focused)
 	})
 	form.SetBorder(true).SetTitle("Enter new body").SetTitleAlign(tview.AlignLeft)
-	m.uiPages.AddPage("ChangeBody", form, true, true)
+	m.menuPages.AddPage("ChangeBody", form, true, true)
 	m.uiApp.SetFocus(form)
 }
 
 func (m *menuImpl) handleExit() {
 	fmt.Println("Exiting...")
 	(*m.server).Stop()
+	m.uiApp.Stop()
 }
 
 func (m *menuImpl) GetOptions() []string {
