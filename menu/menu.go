@@ -22,11 +22,11 @@ type MenuInterface interface {
 }
 
 type menuImpl struct {
-	reader  *bufio.Reader
-	server  *websiteserver.WebsiteServerInterface
-	options []string
-	uiApp   *tview.Application
-	uiPages *tview.Pages
+	reader    *bufio.Reader
+	server    *websiteserver.WebsiteServerInterface
+	options   []string
+	uiApp     *tview.Application
+	menuPages *tview.Pages
 }
 
 // Ensure menuImpl implements MenuInterface
@@ -35,14 +35,14 @@ var _ MenuInterface = &menuImpl{}
 func NewMenu(
 	server *websiteserver.WebsiteServerInterface,
 	uiApp *tview.Application,
-	uiPages *tview.Pages,
+	menuPages *tview.Pages,
 ) *menuImpl {
 	return &menuImpl{
-		reader:  bufio.NewReader(os.Stdin),
-		server:  server,
-		options: []string{"Change title", "Update body", "Exit"},
-		uiApp:   uiApp,
-		uiPages: uiPages,
+		reader:    bufio.NewReader(os.Stdin),
+		server:    server,
+		options:   []string{"Change title", "Update body", "Exit"},
+		uiApp:     uiApp,
+		menuPages: menuPages,
 	}
 }
 
@@ -101,5 +101,5 @@ func (m *menuImpl) GetApp() *tview.Application {
 }
 
 func (m *menuImpl) GetPages() *tview.Pages {
-	return m.uiPages
+	return m.menuPages
 }

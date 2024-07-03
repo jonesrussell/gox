@@ -18,11 +18,11 @@ func main() {
 	server := websiteserver.NewServer(debugger)
 
 	// Create tview.Application and tview.Pages instances
-	app := tview.NewApplication()
-	pages := tview.NewPages()
+	uiApp := tview.NewApplication()
+	menuPages := tview.NewPages()
 
 	// Pass the server, app, and pages to NewMenu
-	menuInstance := menu.NewMenu(&server, app, pages)
+	menuInstance := menu.NewMenu(&server, uiApp, menuPages)
 
 	rootCmd := cmd.NewRootCmd(server, menuInstance)
 	rootCmd.Execute()
