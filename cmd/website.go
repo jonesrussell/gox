@@ -51,7 +51,7 @@ func (w *WebsiteCommand) Command() *cobra.Command {
 			}
 
 			// Get the menu content as a tview.List.
-			menuContent := w.menu.Display()
+			menuContent := w.menu.CreateMenu()
 
 			// Create a TextView for the HTML representation of the website.
 			htmlView := tview.NewTextView().SetText(w.server.GetHTML())

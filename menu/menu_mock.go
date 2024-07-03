@@ -31,7 +31,7 @@ func NewMockMenu(server *websiteserver.WebsiteServerInterface) MenuInterface {
 }
 
 // Display mocks the interaction with the user.
-func (m *MockMenu) Display() *tview.List {
+func (m *MockMenu) CreateMenu() *tview.List {
 	log.Println("Display method called")
 	list := tview.NewList()
 	log.Println("after tview.NewList() call")

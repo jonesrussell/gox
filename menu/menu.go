@@ -12,7 +12,7 @@ import (
 )
 
 type MenuInterface interface {
-	Display() *tview.List
+	CreateMenu() *tview.List
 	handleChangeTitle()
 	handleChangeBody()
 	handleExit()
@@ -46,7 +46,7 @@ func NewMenu(
 	}
 }
 
-func (m *menuImpl) Display() *tview.List {
+func (m *menuImpl) CreateMenu() *tview.List {
 	list := tview.NewList()
 	list.AddItem("Change title", "Press to change the title", '1', func() {
 		m.handleChangeTitle()
