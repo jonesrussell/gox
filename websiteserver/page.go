@@ -11,13 +11,13 @@ import (
 type Page struct {
 	Title   string
 	Body    string
-	content []byte
+	HTML    []byte
 	updater *WebsiteUpdater
 }
 
 // Modify NewPage to accept a FileReader and a WebsiteUpdater as arguments
 func NewPage(title string, body string, fr utils.FileReader, updater *WebsiteUpdater) *Page {
-	content, err := fr.ReadFile("static/index.html")
+	html, err := fr.ReadFile("static/index.html")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -25,13 +25,13 @@ func NewPage(title string, body string, fr utils.FileReader, updater *WebsiteUpd
 	return &Page{
 		Title:   title,
 		Body:    body,
-		content: content,
+		HTML:    html,
 		updater: updater,
 	}
 }
 
 func (p *Page) Render() ([]byte, error) {
-	doc, err := html.Parse(bytes.NewReader(p.content))
+	doc, err := html.Parse(bytes.NewReader(p.HTML))
 	if err != nil {
 		return nil, err
 	}
@@ -51,4 +51,13 @@ func (p *Page) Render() ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
+}
+
+func (p *Page) GetHTML() string {
+	rendered, err := p.Render()
+	if err != nil {
+		log.Println("Error rendering page:", err)
+		return ""
+	}
+	return string(rendered)
 }

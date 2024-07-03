@@ -39,4 +39,11 @@ func Test_WebsiteCommand(t *testing.T) {
 	// Assert something about the output
 	expectedOutput := ""
 	assert.Equal(t, expectedOutput, output, "Expected output to match")
+
+	// Assert that handleExit was called
+	mockMenu, ok := m.(*menu.MockMenu)
+	if !ok {
+		t.Fatal("Expected m to be of type *MockMenu")
+	}
+	assert.True(t, mockMenu.ExitCalled, "Expected handleExit to be called")
 }

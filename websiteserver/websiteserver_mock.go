@@ -46,3 +46,7 @@ func NewMockServer(page *Page) WebsiteServerInterface {
 		page: page,
 	}
 }
+
+func (ms *MockServer) GetHTML() string {
+	return string(ms.page.HTML)
+}

@@ -14,6 +14,7 @@ type WebsiteServerInterface interface {
 	Stop() error
 	UpdateTitle(title string)
 	UpdateBody(body string)
+	GetHTML() string
 }
 
 // websiteServerImpl is the actual implementation of the Server interface
@@ -84,4 +85,8 @@ func (s *websiteServerImpl) UpdateTitle(content string) {
 func (s *websiteServerImpl) UpdateBody(content string) {
 	s.page.Body = content
 	s.debugger.Debug("Updated body to: " + content)
+}
+
+func (s *websiteServerImpl) GetHTML() string {
+	return s.page.GetHTML()
 }
