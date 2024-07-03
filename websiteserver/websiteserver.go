@@ -57,7 +57,6 @@ func (s *websiteServerImpl) Start() error {
 	go func() {
 		defer s.wg.Done()
 
-		log.Println("Listening on :3000...")
 		if err := s.srv.ListenAndServe(); err != http.ErrServerClosed {
 			log.Println(err)
 		}

@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"jonesrussell/gocreate/menu"
 	"jonesrussell/gocreate/websiteserver"
 	"log"
@@ -60,13 +59,7 @@ func (w *WebsiteCommand) createFlexLayout(
 }
 
 func (w *WebsiteCommand) runApp(layout *tview.Flex) {
-	app := w.menu.GetApp()
-	fmt.Println("after call to w.menu.GetApp()")
-
-	app.SetRoot(layout, true)
-	fmt.Println("after call to app.SetRoot()")
-
-	if err := app.Run(); err != nil {
+	if err := w.menu.GetApp().SetRoot(layout, true).Run(); err != nil {
 		log.Fatalf("Error running application: %v", err)
 	}
 }
