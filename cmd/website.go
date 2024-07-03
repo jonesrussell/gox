@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"jonesrussell/gocreate/menu"
 	"jonesrussell/gocreate/websiteserver"
 	"log"
@@ -59,7 +60,13 @@ func (w *WebsiteCommand) createFlexLayout(
 }
 
 func (w *WebsiteCommand) runApp(layout *tview.Flex) {
-	if err := w.menu.GetApp().SetRoot(layout, true).Run(); err != nil {
+	app := w.menu.GetApp()
+	fmt.Println("after call to w.menu.GetApp()")
+
+	app.SetRoot(layout, true)
+	fmt.Println("after call to app.SetRoot()")
+
+	if err := app.Run(); err != nil {
 		log.Fatalf("Error running application: %v", err)
 	}
 }
@@ -83,13 +90,11 @@ func (w *WebsiteCommand) Command() *cobra.Command {
 				return
 			}
 
-			menuList := w.menu.CreateMenu()
-			menuPages := w.menu.GetPages()
 			htmlView := tview.NewTextView().SetText(w.server.GetHTML())
 
 			layout := w.createFlexLayout(
-				menuList,
-				menuPages,
+				w.menu.CreateMenu(),
+				w.menu.GetPages(),
 				htmlView,
 			)
 

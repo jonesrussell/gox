@@ -2,9 +2,7 @@ package menu
 
 import (
 	"bufio"
-	"fmt"
 	"jonesrussell/gocreate/websiteserver"
-	"log"
 
 	"github.com/rivo/tview"
 )
@@ -22,8 +20,6 @@ var _ MenuInterface = &MockMenu{}
 
 // NewMockMenu creates a new instance of MockMenu.
 func NewMockMenu(server *websiteserver.WebsiteServerInterface) MenuInterface {
-	log.Println("NewMockMenu method called")
-
 	return &MockMenu{
 		reader: bufio.NewReader(nil), // Control the input
 		server: server,
@@ -32,10 +28,7 @@ func NewMockMenu(server *websiteserver.WebsiteServerInterface) MenuInterface {
 
 // Display mocks the interaction with the user.
 func (m *MockMenu) CreateMenu() *tview.List {
-	log.Println("Display method called")
 	list := tview.NewList()
-	log.Println("after tview.NewList() call")
-	// fmt.Fprintln(tv, "Mock menu displayed.")
 	return list
 }
 
@@ -50,7 +43,6 @@ func (m *MockMenu) handleChangeBody() {
 
 // handleExit mocks exiting the menu.
 func (m *MockMenu) handleExit() {
-	fmt.Println("Exiting...")
 	m.ExitCalled = true
 }
 

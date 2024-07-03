@@ -2,7 +2,6 @@ package menu
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"strings"
 
@@ -94,7 +93,6 @@ func (m *menuImpl) handleChangeBody() {
 }
 
 func (m *menuImpl) handleExit() {
-	fmt.Println("Exiting...")
 	(*m.server).Stop()
 	m.uiApp.Stop()
 }
