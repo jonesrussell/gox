@@ -22,7 +22,7 @@ func main() {
 	menuPages := tview.NewPages()
 
 	// Pass the server, app, and pages to NewMenu
-	menuInstance := menu.NewMenu(&server, uiApp, menuPages)
+	menuInstance := menu.NewMenu(server, uiApp, menuPages)
 
 	rootCmd := cmd.NewRootCmd(server, menuInstance)
 	rootCmd.Execute()

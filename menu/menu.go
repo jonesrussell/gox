@@ -22,7 +22,7 @@ type MenuInterface interface {
 
 type menuImpl struct {
 	reader    *bufio.Reader
-	server    *websiteserver.WebsiteServerInterface
+	server    websiteserver.WebsiteServerInterface
 	options   []string
 	uiApp     *tview.Application
 	menuPages *tview.Pages
@@ -32,7 +32,7 @@ type menuImpl struct {
 var _ MenuInterface = &menuImpl{}
 
 func NewMenu(
-	server *websiteserver.WebsiteServerInterface,
+	server websiteserver.WebsiteServerInterface,
 	uiApp *tview.Application,
 	menuPages *tview.Pages,
 ) *menuImpl {
@@ -66,7 +66,7 @@ func (m *menuImpl) handleChangeTitle() {
 	form.AddInputField("New title", "", 20, nil, nil)
 	form.AddButton("Submit", func() {
 		newTitle := form.GetFormItemByLabel("New title").(*tview.InputField).GetText()
-		(*m.server).UpdateTitle(strings.TrimSpace(newTitle))
+		m.server.UpdateTitle(strings.TrimSpace(newTitle))
 		m.menuPages.RemovePage("ChangeTitle")
 		m.uiApp.SetFocus(focused)
 	})
@@ -84,7 +84,7 @@ func (m *menuImpl) handleChangeBody() {
 	form.AddInputField("New body", "", 20, nil, nil)
 	form.AddButton("Submit", func() {
 		newBody := form.GetFormItemByLabel("New body").(*tview.InputField).GetText()
-		(*m.server).UpdateBody(strings.TrimSpace(newBody))
+		m.server.UpdateBody(strings.TrimSpace(newBody))
 		m.uiApp.SetFocus(focused)
 	})
 	form.SetBorder(true).SetTitle("Enter new body").SetTitleAlign(tview.AlignLeft)
@@ -93,7 +93,7 @@ func (m *menuImpl) handleChangeBody() {
 }
 
 func (m *menuImpl) handleExit() {
-	(*m.server).Stop()
+	m.server.Stop()
 	m.uiApp.Stop()
 }
 
