@@ -45,10 +45,10 @@ func (w *WebsiteCommand) Command() *cobra.Command {
 			}
 
 			app := tview.NewApplication()
-			pages := tview.NewPages()
+			uiPages := tview.NewPages()
 
 			// Get the menu content as a tview.List.
-			menuContent := w.menu.Display(app, pages)
+			menuContent := w.menu.Display(app, uiPages)
 
 			// Create a TextView for the HTML representation of the website.
 			htmlView := tview.NewTextView().SetText(w.server.GetHTML())
@@ -59,7 +59,7 @@ func (w *WebsiteCommand) Command() *cobra.Command {
 				func(i int, option string) {
 					// Add a page with dummy content
 					dummyContent := tview.NewTextView().SetText(fmt.Sprintf("This is page %s.", option))
-					pages.AddPage(option, dummyContent, false, i == 0)
+					uiPages.AddPage(option, dummyContent, false, i == 0)
 				}(i, option)
 			}
 
@@ -68,7 +68,7 @@ func (w *WebsiteCommand) Command() *cobra.Command {
 				// Left column (1/3 x width of screen)
 				AddItem(menuContent, 0, 1, true).
 				// Middle column (1/3 x width of screen)
-				AddItem(pages, 0, 1, false).
+				AddItem(uiPages, 0, 1, false).
 				// Right column (1/3 x width of screen)
 				AddItem(htmlView, 0, 1, false)
 
