@@ -5,6 +5,8 @@ import (
 	"jonesrussell/gocreate/debug"
 	"jonesrussell/gocreate/menu"
 	"jonesrussell/gocreate/websiteserver"
+
+	"github.com/rivo/tview"
 )
 
 func main() {
@@ -15,7 +17,13 @@ func main() {
 	// Pass the Debugger to NewServer
 	server := websiteserver.NewServer(debugger)
 
-	menuInstance := menu.NewMenu(&server)
+	// Create tview.Application and tview.Pages instances
+	app := tview.NewApplication()
+	pages := tview.NewPages()
+
+	// Pass the server, app, and pages to NewMenu
+	menuInstance := menu.NewMenu(&server, app, pages)
+
 	rootCmd := cmd.NewRootCmd(server, menuInstance)
 	rootCmd.Execute()
 }

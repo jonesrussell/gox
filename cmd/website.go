@@ -50,11 +50,8 @@ func (w *WebsiteCommand) Command() *cobra.Command {
 				return
 			}
 
-			uiApp := tview.NewApplication()
-			uiPages := tview.NewPages()
-
 			// Get the menu content as a tview.List.
-			menuContent := w.menu.Display(uiApp, uiPages)
+			menuContent := w.menu.Display()
 
 			// Create a TextView for the HTML representation of the website.
 			htmlView := tview.NewTextView().SetText(w.server.GetHTML())
@@ -65,7 +62,7 @@ func (w *WebsiteCommand) Command() *cobra.Command {
 				func(i int, option string) {
 					// Add a page with dummy content
 					dummyContent := tview.NewTextView().SetText(fmt.Sprintf("This is page %s.", option))
-					uiPages.AddPage(option, dummyContent, false, i == 0)
+					w.menu.GetPages().AddPage(option, dummyContent, false, i == 0)
 				}(i, option)
 			}
 
@@ -74,11 +71,11 @@ func (w *WebsiteCommand) Command() *cobra.Command {
 				// Left column (1/3 x width of screen)
 				AddItem(menuContent, 0, 1, true).
 				// Middle column (1/3 x width of screen)
-				AddItem(uiPages, 0, 1, false).
+				AddItem(w.menu.GetPages(), 0, 1, false).
 				// Right column (1/3 x width of screen)
 				AddItem(htmlView, 0, 1, false)
 
-			if err := uiApp.SetRoot(flex, true).SetFocus(menuContent).Run(); err != nil {
+			if err := w.menu.GetApp().SetRoot(flex, true).SetFocus(menuContent).Run(); err != nil {
 				log.Fatalf("Error running application: %v", err)
 			}
 		},
