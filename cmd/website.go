@@ -55,12 +55,12 @@ func (w *WebsiteCommand) createHTMLView() *tview.TextView {
 	return tview.NewTextView().SetText(w.server.GetHTML())
 }
 
-func (w *WebsiteCommand) createFlexLayout(menuList *tview.List, pages *tview.Pages, htmlView *tview.TextView) *tview.Flex {
+func (w *WebsiteCommand) createFlexLayout(menuList *tview.List, menuPages *tview.Pages, htmlView *tview.TextView) *tview.Flex {
 	return tview.NewFlex().
 		// Left column (1/3 x width of screen)
 		AddItem(menuList, 0, 1, true).
 		// Middle column (1/3 x width of screen)
-		AddItem(pages, 0, 1, false).
+		AddItem(menuPages, 0, 1, false).
 		// Right column (1/3 x width of screen)
 		AddItem(htmlView, 0, 1, false)
 }
@@ -87,11 +87,12 @@ func (w *WebsiteCommand) Command() *cobra.Command {
 			}
 
 			menuList := w.createMenuList()
+			menuPages := w.menu.GetPages()
 			htmlView := w.createHTMLView()
 
 			layout := w.createFlexLayout(
 				menuList,
-				w.menu.GetPages(),
+				menuPages,
 				htmlView,
 			)
 
