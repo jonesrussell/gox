@@ -7,6 +7,7 @@ import (
 
 	"github.com/rivo/tview"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 type WebsiteCommand struct {
@@ -24,15 +25,11 @@ func NewWebsiteCommand(
 	}
 }
 
-func (w *WebsiteCommand) handleDebugFlag(cmd *cobra.Command) bool {
-	debug, err := cmd.Flags().GetBool("debug")
+func (w *WebsiteCommand) handleDebugFlag(flagset *pflag.FlagSet) bool {
+	debug, err := flagset.GetBool("debug")
 	if err != nil {
 		log.Println("Can't get debug flag, defaulting to false")
 		debug = false
-	}
-
-	if debug {
-		log.Println("Debugging")
 	}
 
 	return debug
@@ -47,15 +44,11 @@ func (w *WebsiteCommand) startServer() error {
 	return nil
 }
 
-func (w *WebsiteCommand) createMenuList() *tview.List {
-	return w.menu.CreateMenu()
-}
-
-func (w *WebsiteCommand) createHTMLView() *tview.TextView {
-	return tview.NewTextView().SetText(w.server.GetHTML())
-}
-
-func (w *WebsiteCommand) createFlexLayout(menuList *tview.List, menuPages *tview.Pages, htmlView *tview.TextView) *tview.Flex {
+func (w *WebsiteCommand) createFlexLayout(
+	menuList *tview.List,
+	menuPages *tview.Pages,
+	htmlView *tview.TextView,
+) *tview.Flex {
 	return tview.NewFlex().
 		// Left column (1/3 x width of screen)
 		AddItem(menuList, 0, 1, true).
@@ -65,8 +58,8 @@ func (w *WebsiteCommand) createFlexLayout(menuList *tview.List, menuPages *tview
 		AddItem(htmlView, 0, 1, false)
 }
 
-func (w *WebsiteCommand) runApp(layout *tview.Flex, menuList *tview.List) {
-	if err := w.menu.GetApp().SetRoot(layout, true).SetFocus(menuList).Run(); err != nil {
+func (w *WebsiteCommand) runApp(layout *tview.Flex) {
+	if err := w.menu.GetApp().SetRoot(layout, true).Run(); err != nil {
 		log.Fatalf("Error running application: %v", err)
 	}
 }
@@ -80,15 +73,19 @@ func (w *WebsiteCommand) Command() *cobra.Command {
 			particularly useful for beginner developers who need to
 			quickly	set up a static website.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			w.handleDebugFlag(cmd)
+			debug := w.handleDebugFlag(cmd.Flags())
+
+			if debug {
+				log.Println("Debugging")
+			}
 
 			if err := w.startServer(); err != nil {
 				return
 			}
 
-			menuList := w.createMenuList()
+			menuList := w.menu.CreateMenu()
 			menuPages := w.menu.GetPages()
-			htmlView := w.createHTMLView()
+			htmlView := tview.NewTextView().SetText(w.server.GetHTML())
 
 			layout := w.createFlexLayout(
 				menuList,
@@ -96,7 +93,7 @@ func (w *WebsiteCommand) Command() *cobra.Command {
 				htmlView,
 			)
 
-			w.runApp(layout, menuList)
+			w.runApp(layout)
 		},
 	}
 
