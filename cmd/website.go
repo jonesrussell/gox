@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"jonesrussell/gocreate/menu"
 	"jonesrussell/gocreate/websiteserver"
 	"log"
@@ -25,6 +24,53 @@ func NewWebsiteCommand(
 	}
 }
 
+func (w *WebsiteCommand) handleDebugFlag(cmd *cobra.Command) bool {
+	debug, err := cmd.Flags().GetBool("debug")
+	if err != nil {
+		log.Println("Can't get debug flag, defaulting to false")
+		debug = false
+	}
+
+	if debug {
+		log.Println("Debugging")
+	}
+
+	return debug
+}
+
+func (w *WebsiteCommand) startServer() error {
+	err := w.server.Start()
+	if err != nil {
+		log.Println("Error starting server:", err)
+		return err
+	}
+	return nil
+}
+
+func (w *WebsiteCommand) createMenuList() *tview.List {
+	return w.menu.CreateMenu()
+}
+
+func (w *WebsiteCommand) createHTMLView() *tview.TextView {
+	return tview.NewTextView().SetText(w.server.GetHTML())
+}
+
+func (w *WebsiteCommand) createFlexLayout(menuList *tview.List, pages *tview.Pages, htmlView *tview.TextView) *tview.Flex {
+	return tview.NewFlex().
+		// Left column (1/3 x width of screen)
+		AddItem(menuList, 0, 1, true).
+		// Middle column (1/3 x width of screen)
+		AddItem(pages, 0, 1, false).
+		// Right column (1/3 x width of screen)
+		AddItem(htmlView, 0, 1, false)
+}
+
+func (w *WebsiteCommand) runApp(layout *tview.Flex, menuList *tview.List) {
+	if err := w.menu.GetApp().SetRoot(layout, true).SetFocus(menuList).Run(); err != nil {
+		log.Fatalf("Error running application: %v", err)
+	}
+}
+
 func (w *WebsiteCommand) Command() *cobra.Command {
 	websiteCmd := &cobra.Command{
 		Use:   "website",
@@ -34,50 +80,22 @@ func (w *WebsiteCommand) Command() *cobra.Command {
 			particularly useful for beginner developers who need to
 			quickly	set up a static website.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			debug, err := rootCmd.Flags().GetBool("debug")
-			if err != nil {
-				log.Println("Can't get debug flag, defaulting to false")
-				debug = false
-			}
+			w.handleDebugFlag(cmd)
 
-			if debug {
-				log.Println("Debugging")
-			}
-
-			err = w.server.Start()
-			if err != nil {
-				log.Println("Error starting server:", err)
+			if err := w.startServer(); err != nil {
 				return
 			}
 
-			// Get the menu content as a tview.List.
-			menuContent := w.menu.CreateMenu()
+			menuList := w.createMenuList()
+			htmlView := w.createHTMLView()
 
-			// Create a TextView for the HTML representation of the website.
-			htmlView := tview.NewTextView().SetText(w.server.GetHTML())
+			layout := w.createFlexLayout(
+				menuList,
+				w.menu.GetPages(),
+				htmlView,
+			)
 
-			// Add pages based on the menu options
-			menuOptions := w.menu.GetOptions()
-			for i, option := range menuOptions {
-				func(i int, option string) {
-					// Add a page with dummy content
-					dummyContent := tview.NewTextView().SetText(fmt.Sprintf("This is page %s.", option))
-					w.menu.GetPages().AddPage(option, dummyContent, false, i == 0)
-				}(i, option)
-			}
-
-			// Main flex layout
-			flex := tview.NewFlex().
-				// Left column (1/3 x width of screen)
-				AddItem(menuContent, 0, 1, true).
-				// Middle column (1/3 x width of screen)
-				AddItem(w.menu.GetPages(), 0, 1, false).
-				// Right column (1/3 x width of screen)
-				AddItem(htmlView, 0, 1, false)
-
-			if err := w.menu.GetApp().SetRoot(flex, true).SetFocus(menuContent).Run(); err != nil {
-				log.Fatalf("Error running application: %v", err)
-			}
+			w.runApp(layout, menuList)
 		},
 	}
 
