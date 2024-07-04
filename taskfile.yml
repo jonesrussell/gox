@@ -39,7 +39,7 @@ tasks:
 
   docker-build:
     cmds:
-      - docker build -t myapp .
+      - docker build -t jonesrussell/gocreate .
     desc: Build Docker image
 
   clean:
