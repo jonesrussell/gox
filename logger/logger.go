@@ -6,32 +6,40 @@ import (
 	"os"
 )
 
-// LoggerInterface is an interface for different type of debugging backends
+// LoggerInterface is an interface for different types of debugging backends
 type LoggerInterface interface {
 	Init() error
 	Log(message string)
-	// Debug receives a new debug message.
 	Debug(message string)
+	Error(message string, err error)
 }
 
-// Logger is the simplest logger which prints log messages to the STDERR
+// Logger is the simplest logger which prints log messages to the specified log file
 type Logger struct {
-	// Output is the log destination, anything can be used which implements them
-	// io.Writer interface. Leave it blank to use STDERR
-	Output    io.Writer
-	logLogger *log.Logger
+	Output   io.Writer
+	instance *log.Logger
 }
 
-// Ensure menuImpl implements MenuInterface
+// Ensure Logger implements LoggerInterface
 var _ LoggerInterface = &Logger{}
 
 // NewLogger creates a new instance of Logger
-func NewLogger() LoggerInterface {
-	logger := &Logger{}
-	err := logger.Init()
+func NewLogger(logFilePath string) LoggerInterface {
+	file, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("Error opening log file: %v", err)
+	}
+
+	logger := &Logger{
+		Output:   file,
+		instance: log.New(file, "", 0),
+	}
+
+	err = logger.Init()
 	if err != nil {
 		log.Fatalf("Error initializing logger: %v", err)
 	}
+
 	return logger
 }
 
@@ -40,15 +48,21 @@ func (l *Logger) Init() error {
 	if l.Output == nil {
 		l.Output = os.Stderr
 	}
-	l.logLogger = log.New(l.Output, "", 0)
+	l.instance = log.New(l.Output, "", 0)
 	return nil
 }
 
+// Log prints the log message to the log file
 func (l *Logger) Log(message string) {
-	log.Println(message)
+	l.instance.Println(message)
 }
 
-// Debug receives a debug message and prints it to STDERR
+// Debug prints the debug message to the log file
 func (l *Logger) Debug(message string) {
-	l.logLogger.Println(message)
+	l.instance.Println(message)
+}
+
+// Error logs an error message with the given error
+func (l *Logger) Error(message string, err error) {
+	l.instance.Printf("%s: %v\n", message, err)
 }

@@ -4,7 +4,7 @@ import (
 	"html/template"
 	"jonesrussell/gocreate/logger"
 	"jonesrussell/gocreate/utils"
-	"log"
+	"net"
 	"net/http"
 	"sync"
 )
@@ -48,11 +48,18 @@ func NewServer(logger logger.LoggerInterface) WebServerInterface {
 }
 
 func (s *webServer) Start() error {
+	// Check for errors before starting the goroutine
+	listener, err := net.Listen("tcp", ":3000")
+	if err != nil {
+		s.logger.Error("Error starting server: ", err)
+		return err
+	}
+
 	s.mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		err := handleRequest(w, r, s.page)
 		if err != nil {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			log.Println(err)
+			s.logger.Error("Error handling request: ", err)
 		}
 	})
 
@@ -62,8 +69,10 @@ func (s *webServer) Start() error {
 	go func() {
 		defer s.wg.Done()
 
-		if err := s.srv.ListenAndServe(); err != http.ErrServerClosed {
-			log.Println(err)
+		if err := s.srv.Serve(listener); err != http.ErrServerClosed {
+			s.logger.Error("Server stopped with error: ", err)
+		} else {
+			s.logger.Debug("Server stopped normally")
 		}
 	}()
 
@@ -71,6 +80,7 @@ func (s *webServer) Start() error {
 }
 
 func (s *webServer) Stop() error {
+	s.logger.Debug("Stopping server")
 	if s.srv != nil {
 		err := s.srv.Close()
 		if err != nil {

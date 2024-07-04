@@ -11,7 +11,7 @@ import (
 
 // Create a new Logger and WebsiteUpdater once for all tests
 var (
-	logInstance = logger.NewLogger()
+	logInstance = logger.NewLogger("/tmp/gocreate-tests.log")
 )
 
 func TestNewServer(t *testing.T) {

@@ -12,7 +12,7 @@ import (
 
 // Create a new Logger and WebsiteUpdater once for all tests
 var (
-	weblogger = logger.NewLogger()
+	weblogger = logger.NewLogger("/tmp/gocreate-tests.log")
 	updater   = webserver.NewWebsiteUpdater(weblogger)
 )
 

@@ -12,7 +12,7 @@ import (
 
 func main() {
 	// Create a new Logger
-	logger := logger.NewLogger()
+	logger := logger.NewLogger("/tmp/gocreate.log")
 	err := logger.Init()
 	if err != nil {
 		log.Fatalf("Error initializing logger: %v", err)
