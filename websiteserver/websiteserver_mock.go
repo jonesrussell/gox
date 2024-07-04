@@ -48,3 +48,7 @@ func (ms *MockServer) UpdateBody(content string) {
 func (ms *MockServer) GetHTML() string {
 	return string(ms.page.HTML)
 }
+
+func (ms *MockServer) GetURL() string {
+	return ms.srv.Addr
+}

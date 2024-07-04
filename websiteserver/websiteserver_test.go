@@ -17,16 +17,16 @@ func TestNewServer(t *testing.T) {
 	assert.NotNil(t, server)
 }
 
-func Test_websiteServerImpl_GetAddress(t *testing.T) {
+func Test_websiteServerImpl_GetURL(t *testing.T) {
 	tests := []struct {
 		name string
 		addr string
 		want string
 	}{
 		{
-			name: "Test GetAddress",
+			name: "Test GetURL",
 			addr: "127.0.0.1:3000",
-			want: "127.0.0.1:3000",
+			want: "http://127.0.0.1:3000",
 		},
 	}
 	for _, tt := range tests {
@@ -38,8 +38,8 @@ func Test_websiteServerImpl_GetAddress(t *testing.T) {
 				wg:       sync.WaitGroup{},
 				page:     &Page{},
 			}
-			if got := s.GetAddress(); got != tt.want {
-				t.Errorf("websiteServerImpl.GetAddress() = %v, want %v", got, tt.want)
+			if got := s.GetURL(); got != tt.want {
+				t.Errorf("websiteServerImpl.GetURL() = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -48,6 +48,7 @@ func (w *WebsiteCommand) createFlexLayout(
 	menuList *tview.List,
 	menuPages *tview.Pages,
 	htmlView *tview.TextView,
+	addressView *tview.TextView,
 ) *tview.Flex {
 	return tview.NewFlex().
 		// Left column (1/3 x width of screen)
@@ -55,7 +56,8 @@ func (w *WebsiteCommand) createFlexLayout(
 		// Middle column (1/3 x width of screen)
 		AddItem(menuPages, 0, 1, false).
 		// Right column (1/3 x width of screen)
-		AddItem(htmlView, 0, 1, false)
+		AddItem(htmlView, 0, 1, false).
+		AddItem(addressView, 0, 1, false)
 }
 
 func (w *WebsiteCommand) runApp(layout *tview.Flex) {
@@ -85,10 +87,14 @@ func (w *WebsiteCommand) Command() *cobra.Command {
 
 			htmlView := tview.NewTextView().SetText(w.server.GetHTML())
 
+			// Create a TextView for the server address
+			addressView := tview.NewTextView().SetText(w.server.GetURL())
+
 			layout := w.createFlexLayout(
 				w.menu.CreateMenu(),
 				w.menu.GetPages(),
 				htmlView,
+				addressView,
 			)
 
 			w.runApp(layout)

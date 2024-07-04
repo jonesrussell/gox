@@ -12,7 +12,8 @@
 				"GitHub.vscode-github-actions",
 				"premparihar.gotestexplorer",
 				"nhoizey.gremlins",
-				"ms-azuretools.vscode-docker"
+				"ms-azuretools.vscode-docker",
+				"DanielSanMedium.dscodegpt"
 			]
 		}
 	},
