@@ -41,9 +41,27 @@ func (w *WebsiteCommand) startServer() error {
 		w.server.Logger().Debug("Error starting server")
 		log.Fatalf("Error starting server: %v", err)
 	} else {
-		log.Println("Server started successfully")
+		w.server.Logger().Debug("Server started successfully")
 	}
 	return nil
+}
+
+func (w *WebsiteCommand) configureAddressView(addressView *tview.TextView) {
+	// Add a border and title to the addressView
+	addressView.SetBorder(true).SetTitle("Webserver")
+}
+
+func (w *WebsiteCommand) createThirdColumn(
+	htmlView *tview.TextView,
+	addressView *tview.TextView,
+) *tview.Flex {
+	// Create a new Flex for the third column
+	return tview.NewFlex().
+		SetDirection(tview.FlexRow).
+		// addressView takes up 1/8th of the height
+		AddItem(addressView, 0, 1, false).
+		// htmlView takes up the rest of the height (7/8th)
+		AddItem(htmlView, 0, 6, false)
 }
 
 func (w *WebsiteCommand) createFlexLayout(
@@ -52,14 +70,16 @@ func (w *WebsiteCommand) createFlexLayout(
 	htmlView *tview.TextView,
 	addressView *tview.TextView,
 ) *tview.Flex {
+	w.configureAddressView(addressView)
+	thirdColumn := w.createThirdColumn(htmlView, addressView)
+
 	return tview.NewFlex().
 		// Left column (1/3 x width of screen)
 		AddItem(menuList, 0, 1, true).
 		// Middle column (1/3 x width of screen)
 		AddItem(menuPages, 0, 1, false).
 		// Right column (1/3 x width of screen)
-		AddItem(htmlView, 0, 1, false).
-		AddItem(addressView, 0, 1, false)
+		AddItem(thirdColumn, 0, 1, false)
 }
 
 func (w *WebsiteCommand) runApp(layout *tview.Flex) {
