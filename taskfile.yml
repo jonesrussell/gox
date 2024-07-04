@@ -47,9 +47,16 @@ tasks:
       - docker build -t myapp .
     desc: Build Docker image
 
+  clean:
+    cmds:
+      - rm -rf ./bin
+      - rm /tmp/gotest.log
+    desc: Clean up generated files
+
   default:
     desc: Run default tasks
     deps:
+      - clean
       - fmt
       - vet
       - lint
