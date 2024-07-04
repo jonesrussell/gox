@@ -17,6 +17,7 @@ type WebServerInterface interface {
 	UpdateBody(body string)
 	GetHTML() string
 	GetURL() string
+	Logger() logger.LoggerInterface
 }
 
 // webServer is the actual implementation of the Server interface
@@ -45,6 +46,10 @@ func NewServer(logger logger.LoggerInterface) WebServerInterface {
 		srv:    &http.Server{Addr: ":3000"},
 		page:   page,
 	}
+}
+
+func (s *webServer) Logger() logger.LoggerInterface {
+	return s.logger
 }
 
 func (s *webServer) Start() error {

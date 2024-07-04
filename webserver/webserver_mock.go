@@ -2,6 +2,7 @@ package webserver
 
 import (
 	"html/template"
+	"jonesrussell/gocreate/logger"
 	"log"
 	"net/http"
 	"sync"
@@ -11,15 +12,20 @@ type MockServer struct {
 	srv  *http.Server
 	wg   sync.WaitGroup
 	page *Page
+	log  logger.LoggerInterface
 }
 
-var _ WebServerInterface = &MockServer{}
+var _ WebServerInterface = &MockServer{} // If Logger() method is needed, implement it in MockServer
 
 func NewMockServer(page *Page) WebServerInterface {
 	return &MockServer{
 		srv:  &http.Server{Addr: ":3000"},
 		page: page,
 	}
+}
+
+func (ms *MockServer) Logger() logger.LoggerInterface {
+	return ms.log
 }
 
 func (ms *MockServer) Start() error {
