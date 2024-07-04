@@ -26,11 +26,6 @@ tasks:
       - golangci-lint run
     desc: Run static analysis
 
-  doc:
-    cmds:
-      - godoc -http=:6060
-    desc: Generate Go documentation
-
   bench:
     cmds:
       - go test -bench .
