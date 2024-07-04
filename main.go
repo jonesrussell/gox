@@ -3,7 +3,6 @@ package main
 import (
 	"jonesrussell/gocreate/cmd"
 	"jonesrussell/gocreate/logger"
-	"jonesrussell/gocreate/menu"
 	"jonesrussell/gocreate/ui"
 	"jonesrussell/gocreate/webserver"
 	"log"
@@ -27,7 +26,7 @@ func main() {
 	menuPages := tview.NewPages()
 
 	// Pass the server, app, and pages to NewMenu
-	menuInstance := menu.NewMenu(server, uiApp, menuPages)
+	menuInstance := ui.NewMenu(server, uiApp, menuPages)
 
 	uiInstance := ui.NewUI()
 

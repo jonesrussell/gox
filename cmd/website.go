@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"jonesrussell/gocreate/menu"
 	"jonesrussell/gocreate/ui" // Import the ui package
 	"jonesrussell/gocreate/webserver"
 	"log"
@@ -13,13 +12,13 @@ import (
 
 type WebsiteCommand struct {
 	server webserver.WebServerInterface
-	menu   menu.MenuInterface
+	menu   ui.MenuInterface
 	ui     ui.UIInterface
 }
 
 func NewWebsiteCommand(
 	server webserver.WebServerInterface,
-	menu menu.MenuInterface,
+	menu ui.MenuInterface,
 	ui ui.UIInterface,
 ) *WebsiteCommand {
 	return &WebsiteCommand{
@@ -87,7 +86,7 @@ func (w *WebsiteCommand) createFlexLayout(
 }
 
 func (w *WebsiteCommand) runApp(layout *tview.Flex) {
-	if err := w.menu.GetApp().SetRoot(layout, true).Run(); err != nil {
+	if err := w.ui.GetApp().SetRoot(layout, true).Run(); err != nil {
 		log.Fatalf("Error running application: %v", err)
 	}
 }
@@ -117,8 +116,8 @@ func (w *WebsiteCommand) Command() *cobra.Command {
 			addressView := tview.NewTextView().SetText(w.server.GetURL())
 
 			layout := w.createFlexLayout(
-				w.menu.CreateMenu(),
-				w.menu.GetPages(),
+				w.ui.CreateMenu(),
+				w.ui.GetPages(),
 				htmlView,
 				addressView,
 			)

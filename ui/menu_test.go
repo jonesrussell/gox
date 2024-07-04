@@ -13,10 +13,10 @@ func TestNewMenu(t *testing.T) {
 	server := webserver.NewMockServer(&webserver.Page{})
 
 	// Create a new menu
-	menu := NewMenu(server, nil, nil)
+	menuInstance := NewMenu(server, nil, nil)
 
 	// Assert that the menu was created with the correct options
-	assert.Equal(t, []string{"Change title", "Update body", "Exit"}, menu.GetOptions())
+	assert.Equal(t, []string{"Change title", "Update body", "Exit"}, menuInstance.GetOptions())
 }
 
 func TestCreateMenu(t *testing.T) {
@@ -24,10 +24,10 @@ func TestCreateMenu(t *testing.T) {
 	server := webserver.NewMockServer(&webserver.Page{})
 
 	// Create a new menu
-	menu := NewMenu(server, nil, nil)
+	menuInstance := NewMenu(server, nil, nil)
 
 	// Create the menu
-	list := menu.CreateMenu()
+	list := menuInstance.CreateMenu()
 
 	// Assert that the list has the correct number of items
 	assert.Equal(t, 3, list.GetItemCount())

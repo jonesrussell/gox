@@ -41,7 +41,7 @@ func (m *MockMenu) handleChangeBody() {
 	// Your implementation here
 }
 
-// handleExit mocks exiting the menu.
+// handleExit mocks exiting the ui.
 func (m *MockMenu) handleExit() {
 	m.ExitCalled = true
 }

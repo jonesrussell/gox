@@ -3,7 +3,6 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"jonesrussell/gocreate/menu"
 	"jonesrussell/gocreate/ui"
 	"jonesrussell/gocreate/webserver"
 	"os"
@@ -45,7 +44,7 @@ var rootCmd = &cobra.Command{
 
 func NewRootCmd(
 	server webserver.WebServerInterface,
-	menu menu.MenuInterface,
+	menu ui.MenuInterface,
 	ui ui.UIInterface,
 ) *cobra.Command {
 	websiteCommand := NewWebsiteCommand(server, menu, ui)
