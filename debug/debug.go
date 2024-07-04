@@ -23,7 +23,10 @@ type LogDebugger struct {
 // NewLogDebugger creates a new instance of LogDebugger
 func NewLogDebugger() *LogDebugger {
 	debugger := &LogDebugger{}
-	debugger.Init()
+	err := debugger.Init()
+	if err != nil {
+		log.Fatalf("Error initializing debugger: %v", err)
+	}
 	return debugger
 }
 

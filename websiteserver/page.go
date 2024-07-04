@@ -44,7 +44,9 @@ func (p *Page) Render() ([]byte, error) {
 
 	p.updater.ChangeTitle(doc, p.Title)
 
-	p.updater.ChangeBody(doc, p.Body)
+	// Unescape the body before updating it
+	unescapedBody := html.UnescapeString(p.Body)
+	p.updater.ChangeBody(doc, unescapedBody)
 
 	var buf bytes.Buffer
 	err = html.Render(&buf, doc)

@@ -3,7 +3,7 @@ version: '3'
 tasks:
   build:
     cmds:
-      - go build -v -o bin/gocreate ./cmd/main.go
+      - go build -v -o bin/gocreate main.go
     desc: Build the gocreate binary
 
   test:

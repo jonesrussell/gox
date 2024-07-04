@@ -2,6 +2,7 @@ package menu
 
 import (
 	"bufio"
+	"log"
 	"os"
 	"strings"
 
@@ -93,7 +94,10 @@ func (m *menuImpl) handleChangeBody() {
 }
 
 func (m *menuImpl) handleExit() {
-	m.server.Stop()
+	err := m.server.Stop()
+	if err != nil {
+		log.Fatalf("Error stopping server: %v", err)
+	}
 	m.uiApp.Stop()
 }
 

@@ -5,14 +5,18 @@ import (
 	"jonesrussell/gocreate/debug"
 	"jonesrussell/gocreate/menu"
 	"jonesrussell/gocreate/websiteserver"
+	"log"
 
 	"github.com/rivo/tview"
 )
 
 func main() {
 	// Create a new LogDebugger
-	debugger := &debug.LogDebugger{}
-	debugger.Init()
+	debugger := debug.NewLogDebugger()
+	err := debugger.Init()
+	if err != nil {
+		log.Fatalf("Error initializing debugger: %v", err)
+	}
 
 	// Pass the Debugger to NewServer
 	server := websiteserver.NewServer(debugger)
@@ -25,5 +29,9 @@ func main() {
 	menuInstance := menu.NewMenu(server, uiApp, menuPages)
 
 	rootCmd := cmd.NewRootCmd(server, menuInstance)
-	rootCmd.Execute()
+
+	err = rootCmd.Execute()
+	if err != nil {
+		log.Fatalf("Error executing command: %v", err)
+	}
 }
