@@ -1,4 +1,4 @@
-package websiteserver
+package webserver
 
 import (
 	"html/template"
@@ -9,8 +9,8 @@ import (
 	"sync"
 )
 
-// Define the WebsiteServerInterface interface
-type WebsiteServerInterface interface {
+// Define the WebServerInterface interface
+type WebServerInterface interface {
 	Start() error
 	Stop() error
 	UpdateTitle(title string)
@@ -19,8 +19,8 @@ type WebsiteServerInterface interface {
 	GetURL() string
 }
 
-// websiteServerImpl is the actual implementation of the Server interface
-type websiteServerImpl struct {
+// webServer is the actual implementation of the Server interface
+type webServer struct {
 	debugger debug.Debugger
 	mux      *http.ServeMux
 	srv      *http.Server
@@ -29,7 +29,7 @@ type websiteServerImpl struct {
 }
 
 // NewServer returns a new Server
-func NewServer(debugger debug.Debugger) WebsiteServerInterface {
+func NewServer(debugger debug.Debugger) WebServerInterface {
 	// Create a new WebsiteUpdater
 	updater := NewWebsiteUpdater(debugger)
 
@@ -37,7 +37,7 @@ func NewServer(debugger debug.Debugger) WebsiteServerInterface {
 	body := "<h1>My Heading</h1>"
 	page := NewPage("My Title", template.HTML(body), utils.OSFileReader{}, updater, "static/index.html") // utils.OSFileReader{} is of type utils.FileReader
 
-	return &websiteServerImpl{
+	return &webServer{
 		debugger: debugger,
 		mux:      http.NewServeMux(),
 		srv:      &http.Server{Addr: "0.0.0.0:3000"},
@@ -45,7 +45,7 @@ func NewServer(debugger debug.Debugger) WebsiteServerInterface {
 	}
 }
 
-func (s *websiteServerImpl) Start() error {
+func (s *webServer) Start() error {
 	s.mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		err := handleRequest(w, r, s.page)
 		if err != nil {
@@ -68,7 +68,7 @@ func (s *websiteServerImpl) Start() error {
 	return nil
 }
 
-func (s *websiteServerImpl) Stop() error {
+func (s *webServer) Stop() error {
 	if s.srv != nil {
 		err := s.srv.Close()
 		if err != nil {
@@ -79,19 +79,19 @@ func (s *websiteServerImpl) Stop() error {
 	return nil
 }
 
-func (s *websiteServerImpl) UpdateTitle(content string) {
+func (s *webServer) UpdateTitle(content string) {
 	s.page.SetTitle(content)
 }
 
-func (s *websiteServerImpl) UpdateBody(content string) {
+func (s *webServer) UpdateBody(content string) {
 	s.page.SetBody(content)
 }
 
-func (s *websiteServerImpl) GetHTML() string {
+func (s *webServer) GetHTML() string {
 	return s.page.GetHTML()
 }
 
-func (s *websiteServerImpl) GetURL() string {
+func (s *webServer) GetURL() string {
 	addr := s.srv.Addr
 	if addr == ":3000" {
 		addr = "127.0.0.1:3000"

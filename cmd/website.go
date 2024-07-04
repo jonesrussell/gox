@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"jonesrussell/gocreate/menu"
-	"jonesrussell/gocreate/websiteserver"
+	"jonesrussell/gocreate/webserver"
 	"log"
 
 	"github.com/rivo/tview"
@@ -11,12 +11,12 @@ import (
 )
 
 type WebsiteCommand struct {
-	server websiteserver.WebsiteServerInterface
+	server webserver.WebServerInterface
 	menu   menu.MenuInterface
 }
 
 func NewWebsiteCommand(
-	server websiteserver.WebsiteServerInterface,
+	server webserver.WebServerInterface,
 	menu menu.MenuInterface,
 ) *WebsiteCommand {
 	return &WebsiteCommand{

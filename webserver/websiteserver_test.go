@@ -1,4 +1,4 @@
-package websiteserver
+package webserver
 
 import (
 	"jonesrussell/gocreate/debug"
@@ -17,7 +17,7 @@ func TestNewServer(t *testing.T) {
 	assert.NotNil(t, server)
 }
 
-func Test_websiteServerImpl_GetURL(t *testing.T) {
+func Test_webServer_GetURL(t *testing.T) {
 	tests := []struct {
 		name string
 		addr string
@@ -46,7 +46,7 @@ func Test_websiteServerImpl_GetURL(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &websiteServerImpl{
+			s := &webServer{
 				debugger: &debug.LogDebugger{},
 				mux:      http.NewServeMux(),
 				srv:      &http.Server{Addr: tt.addr},
@@ -54,7 +54,7 @@ func Test_websiteServerImpl_GetURL(t *testing.T) {
 				page:     &Page{},
 			}
 			if got := s.GetURL(); got != tt.want {
-				t.Errorf("websiteServerImpl.GetURL() = %v, want %v", got, tt.want)
+				t.Errorf("webServer.GetURL() = %v, want %v", got, tt.want)
 			}
 		})
 	}

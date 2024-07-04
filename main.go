@@ -4,7 +4,7 @@ import (
 	"jonesrussell/gocreate/cmd"
 	"jonesrussell/gocreate/debug"
 	"jonesrussell/gocreate/menu"
-	"jonesrussell/gocreate/websiteserver"
+	"jonesrussell/gocreate/webserver"
 	"log"
 
 	"github.com/rivo/tview"
@@ -19,7 +19,7 @@ func main() {
 	}
 
 	// Pass the Debugger to NewServer
-	server := websiteserver.NewServer(debugger)
+	server := webserver.NewServer(debugger)
 
 	// Create tview.Application and tview.Pages instances
 	uiApp := tview.NewApplication()

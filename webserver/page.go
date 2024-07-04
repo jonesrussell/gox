@@ -1,4 +1,4 @@
-package websiteserver
+package webserver
 
 import (
 	"bytes"

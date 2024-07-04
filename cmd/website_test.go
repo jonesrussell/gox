@@ -5,7 +5,7 @@ import (
 
 	"jonesrussell/gocreate/debug"
 	"jonesrussell/gocreate/utils"
-	"jonesrussell/gocreate/websiteserver"
+	"jonesrussell/gocreate/webserver"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -13,13 +13,13 @@ import (
 // Create a new LogDebugger and WebsiteUpdater once for all tests
 var (
 	debugger = debug.NewLogDebugger()
-	updater  = websiteserver.NewWebsiteUpdater(debugger)
+	updater  = webserver.NewWebsiteUpdater(debugger)
 )
 
 func Test_ServerInitialization(t *testing.T) {
-	mockPage := websiteserver.NewPage("", "", utils.MockFileReader{}, updater, "static/index.html")
-	mockServer := websiteserver.NewMockServer(mockPage)
+	mockPage := webserver.NewPage("", "", utils.MockFileReader{}, updater, "static/index.html")
+	mockServer := webserver.NewMockServer(mockPage)
 
-	_, ok := mockServer.(*websiteserver.MockServer)
+	_, ok := mockServer.(*webserver.MockServer)
 	assert.True(t, ok, "Expected a mock server, got a real one")
 }

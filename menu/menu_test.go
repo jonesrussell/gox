@@ -3,14 +3,14 @@ package menu
 import (
 	"testing"
 
-	"jonesrussell/gocreate/websiteserver"
+	"jonesrussell/gocreate/webserver"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewMenu(t *testing.T) {
 	// Mock the server
-	server := websiteserver.NewMockServer(&websiteserver.Page{})
+	server := webserver.NewMockServer(&webserver.Page{})
 
 	// Create a new menu
 	menu := NewMenu(server, nil, nil)
@@ -21,7 +21,7 @@ func TestNewMenu(t *testing.T) {
 
 func TestCreateMenu(t *testing.T) {
 	// Mock the server
-	server := websiteserver.NewMockServer(&websiteserver.Page{})
+	server := webserver.NewMockServer(&webserver.Page{})
 
 	// Create a new menu
 	menu := NewMenu(server, nil, nil)

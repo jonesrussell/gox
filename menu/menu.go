@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"jonesrussell/gocreate/websiteserver"
+	"jonesrussell/gocreate/webserver"
 
 	"github.com/rivo/tview"
 )
@@ -23,7 +23,7 @@ type MenuInterface interface {
 
 type menuImpl struct {
 	reader    *bufio.Reader
-	server    websiteserver.WebsiteServerInterface
+	server    webserver.WebServerInterface
 	options   []string
 	uiApp     *tview.Application
 	menuPages *tview.Pages
@@ -33,7 +33,7 @@ type menuImpl struct {
 var _ MenuInterface = &menuImpl{}
 
 func NewMenu(
-	server websiteserver.WebsiteServerInterface,
+	server webserver.WebServerInterface,
 	uiApp *tview.Application,
 	menuPages *tview.Pages,
 ) *menuImpl {

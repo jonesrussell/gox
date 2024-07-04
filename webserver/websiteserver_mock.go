@@ -1,4 +1,4 @@
-package websiteserver
+package webserver
 
 import (
 	"html/template"
@@ -13,9 +13,9 @@ type MockServer struct {
 	page *Page
 }
 
-var _ WebsiteServerInterface = &MockServer{}
+var _ WebServerInterface = &MockServer{}
 
-func NewMockServer(page *Page) WebsiteServerInterface {
+func NewMockServer(page *Page) WebServerInterface {
 	return &MockServer{
 		srv:  &http.Server{Addr: ":3000"},
 		page: page,

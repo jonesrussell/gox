@@ -2,7 +2,7 @@ package menu
 
 import (
 	"bufio"
-	"jonesrussell/gocreate/websiteserver"
+	"jonesrussell/gocreate/webserver"
 
 	"github.com/rivo/tview"
 )
@@ -10,7 +10,7 @@ import (
 // MockMenu simulates the behavior of the real Menu for testing purposes.
 type MockMenu struct {
 	reader *bufio.Reader
-	server *websiteserver.WebsiteServerInterface
+	server *webserver.WebServerInterface
 	// Add fields to capture method calls if needed
 	ExitCalled bool
 }
@@ -19,7 +19,7 @@ type MockMenu struct {
 var _ MenuInterface = &MockMenu{}
 
 // NewMockMenu creates a new instance of MockMenu.
-func NewMockMenu(server *websiteserver.WebsiteServerInterface) MenuInterface {
+func NewMockMenu(server *webserver.WebServerInterface) MenuInterface {
 	return &MockMenu{
 		reader: bufio.NewReader(nil), // Control the input
 		server: server,
