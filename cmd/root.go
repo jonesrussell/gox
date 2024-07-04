@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"jonesrussell/gocreate/menu"
+	"jonesrussell/gocreate/ui"
 	"jonesrussell/gocreate/webserver"
 	"os"
 
@@ -42,8 +43,12 @@ var rootCmd = &cobra.Command{
 	Short: "Create webs things!",
 }
 
-func NewRootCmd(server webserver.WebServerInterface, menu menu.MenuInterface) *cobra.Command {
-	websiteCommand := NewWebsiteCommand(server, menu)
+func NewRootCmd(
+	server webserver.WebServerInterface,
+	menu menu.MenuInterface,
+	ui ui.UIInterface,
+) *cobra.Command {
+	websiteCommand := NewWebsiteCommand(server, menu, ui)
 	rootCmd.AddCommand(websiteCommand.Command())
 	return rootCmd
 }

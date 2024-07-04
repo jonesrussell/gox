@@ -1,4 +1,4 @@
-package menu
+package ui
 
 import (
 	"bufio"
@@ -21,7 +21,7 @@ type MenuInterface interface {
 	GetPages() *tview.Pages
 }
 
-type menuImpl struct {
+type Menu struct {
 	reader    *bufio.Reader
 	server    webserver.WebServerInterface
 	options   []string
@@ -29,15 +29,15 @@ type menuImpl struct {
 	menuPages *tview.Pages
 }
 
-// Ensure menuImpl implements MenuInterface
-var _ MenuInterface = &menuImpl{}
+// Ensure Menu implements MenuInterface
+var _ MenuInterface = &Menu{}
 
 func NewMenu(
 	server webserver.WebServerInterface,
 	uiApp *tview.Application,
 	menuPages *tview.Pages,
-) *menuImpl {
-	return &menuImpl{
+) *Menu {
+	return &Menu{
 		reader:    bufio.NewReader(os.Stdin),
 		server:    server,
 		options:   []string{"Change title", "Update body", "Exit"},
@@ -46,7 +46,7 @@ func NewMenu(
 	}
 }
 
-func (m *menuImpl) CreateMenu() *tview.List {
+func (m *Menu) CreateMenu() *tview.List {
 	list := tview.NewList()
 	list.AddItem("Change title", "Press to change the title", '1', func() {
 		m.handleChangeTitle()
@@ -61,7 +61,7 @@ func (m *menuImpl) CreateMenu() *tview.List {
 	return list
 }
 
-func (m *menuImpl) handleChangeTitle() {
+func (m *Menu) handleChangeTitle() {
 	focused := m.uiApp.GetFocus()
 	form := tview.NewForm()
 	form.AddInputField("New title", "", 20, nil, nil)
@@ -79,7 +79,7 @@ func (m *menuImpl) handleChangeTitle() {
 	m.uiApp.SetFocus(form)
 }
 
-func (m *menuImpl) handleChangeBody() {
+func (m *Menu) handleChangeBody() {
 	focused := m.uiApp.GetFocus()
 	form := tview.NewForm()
 	form.AddInputField("New body", "", 20, nil, nil)
@@ -93,7 +93,7 @@ func (m *menuImpl) handleChangeBody() {
 	m.uiApp.SetFocus(form)
 }
 
-func (m *menuImpl) handleExit() {
+func (m *Menu) handleExit() {
 	err := m.server.Stop()
 	if err != nil {
 		log.Fatalf("Error stopping server: %v", err)
@@ -101,14 +101,14 @@ func (m *menuImpl) handleExit() {
 	m.uiApp.Stop()
 }
 
-func (m *menuImpl) GetOptions() []string {
+func (m *Menu) GetOptions() []string {
 	return m.options
 }
 
-func (m *menuImpl) GetApp() *tview.Application {
+func (m *Menu) GetApp() *tview.Application {
 	return m.uiApp
 }
 
-func (m *menuImpl) GetPages() *tview.Pages {
+func (m *Menu) GetPages() *tview.Pages {
 	return m.menuPages
 }

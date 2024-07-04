@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"jonesrussell/gocreate/menu"
+	"jonesrussell/gocreate/ui" // Import the ui package
 	"jonesrussell/gocreate/webserver"
 	"log"
 
@@ -13,15 +14,18 @@ import (
 type WebsiteCommand struct {
 	server webserver.WebServerInterface
 	menu   menu.MenuInterface
+	ui     ui.UIInterface
 }
 
 func NewWebsiteCommand(
 	server webserver.WebServerInterface,
 	menu menu.MenuInterface,
+	ui ui.UIInterface,
 ) *WebsiteCommand {
 	return &WebsiteCommand{
 		server: server,
 		menu:   menu,
+		ui:     ui,
 	}
 }
 

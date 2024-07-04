@@ -4,6 +4,7 @@ import (
 	"jonesrussell/gocreate/cmd"
 	"jonesrussell/gocreate/logger"
 	"jonesrussell/gocreate/menu"
+	"jonesrussell/gocreate/ui"
 	"jonesrussell/gocreate/webserver"
 	"log"
 
@@ -28,7 +29,9 @@ func main() {
 	// Pass the server, app, and pages to NewMenu
 	menuInstance := menu.NewMenu(server, uiApp, menuPages)
 
-	rootCmd := cmd.NewRootCmd(server, menuInstance)
+	uiInstance := ui.NewUI()
+
+	rootCmd := cmd.NewRootCmd(server, menuInstance, uiInstance)
 
 	err = rootCmd.Execute()
 	if err != nil {
