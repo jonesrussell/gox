@@ -15,6 +15,7 @@ type WebsiteServerInterface interface {
 	UpdateTitle(title string)
 	UpdateBody(body string)
 	GetHTML() string
+	GetAddress() string
 }
 
 // websiteServerImpl is the actual implementation of the Server interface
@@ -37,7 +38,7 @@ func NewServer(debugger debug.Debugger) WebsiteServerInterface {
 	return &websiteServerImpl{
 		debugger: debugger,
 		mux:      http.NewServeMux(),
-		srv:      &http.Server{Addr: ":3000"},
+		srv:      &http.Server{Addr: "172.17.0.1:3000"},
 		page:     page,
 	}
 }
@@ -86,4 +87,8 @@ func (s *websiteServerImpl) UpdateBody(content string) {
 
 func (s *websiteServerImpl) GetHTML() string {
 	return s.page.GetHTML()
+}
+
+func (s *websiteServerImpl) GetAddress() string {
+	return s.srv.Addr
 }
