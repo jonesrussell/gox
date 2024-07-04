@@ -17,7 +17,7 @@ var (
 )
 
 func Test_ServerInitialization(t *testing.T) {
-	mockPage := websiteserver.NewPage("", "", utils.MockFileReader{}, updater)
+	mockPage := websiteserver.NewPage("", "", utils.MockFileReader{}, updater, "static/index.html")
 	mockServer := websiteserver.NewMockServer(mockPage)
 
 	_, ok := mockServer.(*websiteserver.MockServer)

@@ -15,9 +15,15 @@ type Page struct {
 	updater *WebsiteUpdater
 }
 
-// Modify NewPage to accept a FileReader and a WebsiteUpdater as arguments
-func NewPage(title string, body string, fr utils.FileReader, updater *WebsiteUpdater) *Page {
-	html, err := fr.ReadFile("static/index.html")
+// Modify NewPage to accept a FileReader, a WebsiteUpdater, and a filename as arguments
+func NewPage(
+	title string,
+	body string,
+	fr utils.FileReader,
+	updater *WebsiteUpdater,
+	filename string,
+) *Page {
+	html, err := fr.ReadFile(filename)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -36,13 +42,9 @@ func (p *Page) Render() ([]byte, error) {
 		return nil, err
 	}
 
-	if p.Title != "" {
-		p.updater.ChangeTitle(doc, p.Title)
-	}
+	p.updater.ChangeTitle(doc, p.Title)
 
-	if p.Body != "" {
-		p.updater.ChangeBody(doc, p.Body)
-	}
+	p.updater.ChangeBody(doc, p.Body)
 
 	var buf bytes.Buffer
 	err = html.Render(&buf, doc)
@@ -60,4 +62,14 @@ func (p *Page) GetHTML() string {
 		return ""
 	}
 	return string(rendered)
+}
+
+func (p *Page) SetTitle(content string) {
+	p.Title = content
+	// Add any additional logic here.
+}
+
+func (p *Page) SetBody(content string) {
+	p.Title = content
+	// Add any additional logic here.
 }
