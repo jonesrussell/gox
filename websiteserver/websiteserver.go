@@ -32,7 +32,7 @@ func NewServer(debugger debug.Debugger) WebsiteServerInterface {
 	updater := NewWebsiteUpdater(debugger)
 
 	// Explicitly use the FileReader interface when creating a new Page instance
-	page := NewPage("", "", utils.OSFileReader{}, updater) // utils.OSFileReader{} is of type utils.FileReader
+	page := NewPage("My Title", "<h1>My Heading</h1>", utils.OSFileReader{}, updater, "static/index.html") // utils.OSFileReader{} is of type utils.FileReader
 
 	return &websiteServerImpl{
 		debugger: debugger,
@@ -77,13 +77,11 @@ func (s *websiteServerImpl) Stop() error {
 }
 
 func (s *websiteServerImpl) UpdateTitle(content string) {
-	s.page.Title = content
-	s.debugger.Debug("Updated title to: " + content)
+	s.page.SetTitle(content)
 }
 
 func (s *websiteServerImpl) UpdateBody(content string) {
-	s.page.Body = content
-	s.debugger.Debug("Updated body to: " + content)
+	s.page.SetBody(content)
 }
 
 func (s *websiteServerImpl) GetHTML() string {
