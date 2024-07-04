@@ -3,4 +3,55 @@ version: '3'
 tasks:
   build:
     cmds:
-      - go build -v -o bin/gocreate main.go
+      - go build -v -o bin/gocreate ./cmd/main.go
+    desc: Build the gocreate binary
+
+  test:
+    cmds:
+      - go test -json -v ./... 2>&1 | tee /tmp/gotest.log | gotestfmt
+    desc: Run all tests with gotestfmt
+
+  fmt:
+    cmds:
+      - go fmt ./...
+    desc: Format the Go code
+
+  vet:
+    cmds:
+      - go vet ./...
+    desc: Vet the Go code
+
+  lint:
+    cmds:
+      - golangci-lint run
+    desc: Run static analysis
+
+  doc:
+    cmds:
+      - godoc -http=:6060
+    desc: Generate Go documentation
+
+  bench:
+    cmds:
+      - go test -bench .
+    desc: Run benchmarks
+
+  update-deps:
+    cmds:
+      - go get -u
+      - go mod tidy
+    desc: Update dependencies
+
+  docker-build:
+    cmds:
+      - docker build -t myapp .
+    desc: Build Docker image
+
+  default:
+    desc: Run default tasks
+    deps:
+      - fmt
+      - vet
+      - lint
+      - test
+      - build
