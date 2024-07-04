@@ -15,7 +15,6 @@ type MockServer struct {
 var _ WebsiteServerInterface = &MockServer{}
 
 func NewMockServer(page *Page) WebsiteServerInterface {
-	log.Println("Creating NewMockServer instance")
 	return &MockServer{
 		srv:  &http.Server{Addr: ":3000"},
 		page: page,
