@@ -3,17 +3,17 @@ package cmd_test
 import (
 	"testing"
 
-	"jonesrussell/gocreate/debug"
+	"jonesrussell/gocreate/logger"
 	"jonesrussell/gocreate/utils"
 	"jonesrussell/gocreate/webserver"
 
 	"github.com/stretchr/testify/assert"
 )
 
-// Create a new LogDebugger and WebsiteUpdater once for all tests
+// Create a new Logger and WebsiteUpdater once for all tests
 var (
-	debugger = debug.NewLogDebugger()
-	updater  = webserver.NewWebsiteUpdater(debugger)
+	weblogger = logger.NewLogger()
+	updater   = webserver.NewWebsiteUpdater(weblogger)
 )
 
 func Test_ServerInitialization(t *testing.T) {

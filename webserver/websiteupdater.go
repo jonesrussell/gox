@@ -1,18 +1,18 @@
 package webserver
 
 import (
-	"jonesrussell/gocreate/debug"
+	"jonesrussell/gocreate/logger"
 
 	"golang.org/x/net/html"
 )
 
 type WebsiteUpdater struct {
-	debugger debug.Debugger
+	logger logger.LoggerInterface
 }
 
-func NewWebsiteUpdater(debugger debug.Debugger) *WebsiteUpdater {
+func NewWebsiteUpdater(logger logger.LoggerInterface) *WebsiteUpdater {
 	return &WebsiteUpdater{
-		debugger: debugger,
+		logger: logger,
 	}
 }
 

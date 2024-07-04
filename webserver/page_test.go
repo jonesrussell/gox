@@ -3,7 +3,7 @@ package webserver
 import (
 	"bytes"
 	"html/template"
-	"jonesrussell/gocreate/debug"
+	"jonesrussell/gocreate/logger"
 	"jonesrussell/gocreate/utils"
 	"testing"
 )
@@ -27,14 +27,14 @@ func TestPage_NewPage(t *testing.T) {
 				title:    "Test Title",
 				body:     template.HTML("Test Body"),
 				fr:       utils.MockFileReader{},
-				updater:  NewWebsiteUpdater(debug.NewLogDebugger()),
+				updater:  NewWebsiteUpdater(logger.NewLogger()),
 				filename: "../static/index.html",
 			},
 			want: &Page{
 				Title:   "Test Title",
 				Body:    "Test Body",
 				HTML:    []byte("<html><head><title>Mock Title</title></head><body>Mock Body</body></html>"), // this should match the content returned by MockFileReader.ReadFile
-				updater: NewWebsiteUpdater(debug.NewLogDebugger()),                                           // assuming you have a constructor
+				updater: NewWebsiteUpdater(logger.NewLogger()),                                               // assuming you have a constructor
 			},
 		},
 	}
@@ -68,7 +68,7 @@ func TestPage_Render(t *testing.T) {
 				Title:   "Test Title",
 				Body:    "Test Body",
 				HTML:    []byte("<html><head><title>Mock Title</title></head><body>Mock Body</body></html>"), // this should match the content returned by MockFileReader.ReadFile
-				updater: NewWebsiteUpdater(debug.NewLogDebugger()),                                           // assuming you have a constructor
+				updater: NewWebsiteUpdater(logger.NewLogger()),                                               // assuming you have a constructor
 			},
 			want:    []byte("<html><head><title>Test Title</title></head><body>Test Body</body></html>"),
 			wantErr: false,
@@ -79,7 +79,7 @@ func TestPage_Render(t *testing.T) {
 				Title:   "",
 				Body:    "Test Body",
 				HTML:    []byte("<html><head><title>Mock Title</title></head><body>Mock Body</body></html>"), // this should match the content returned by MockFileReader.ReadFile
-				updater: NewWebsiteUpdater(debug.NewLogDebugger()),                                           // assuming you have a constructor
+				updater: NewWebsiteUpdater(logger.NewLogger()),                                               // assuming you have a constructor
 			},
 			want:    []byte("<html><head><title></title></head><body>Test Body</body></html>"),
 			wantErr: false,
@@ -90,7 +90,7 @@ func TestPage_Render(t *testing.T) {
 				Title:   "Test Title",
 				Body:    "",
 				HTML:    []byte("<html><head><title>Mock Title</title></head><body>Mock Body</body></html>"), // this should match the content returned by MockFileReader.ReadFile
-				updater: NewWebsiteUpdater(debug.NewLogDebugger()),                                           // assuming you have a constructor
+				updater: NewWebsiteUpdater(logger.NewLogger()),                                               // assuming you have a constructor
 			},
 			want:    []byte("<html><head><title>Test Title</title></head><body></body></html>"),
 			wantErr: false,
@@ -101,7 +101,7 @@ func TestPage_Render(t *testing.T) {
 				Title:   "",
 				Body:    "",
 				HTML:    []byte("<html><head><title>Mock Title</title></head><body>Mock Body</body></html>"), // this should match the content returned by MockFileReader.ReadFile
-				updater: NewWebsiteUpdater(debug.NewLogDebugger()),                                           // assuming you have a constructor
+				updater: NewWebsiteUpdater(logger.NewLogger()),                                               // assuming you have a constructor
 			},
 			want:    []byte("<html><head><title></title></head><body></body></html>"),
 			wantErr: false,
@@ -145,7 +145,7 @@ func TestPage_GetHTML(t *testing.T) {
 				Title:   "Test Title",
 				Body:    "Test Body",
 				HTML:    []byte("<html><head><title>Mock Title</title></head><body>Mock Body</body></html>"), // this should match the content returned by MockFileReader.ReadFile
-				updater: NewWebsiteUpdater(debug.NewLogDebugger()),                                           // assuming you have a constructor
+				updater: NewWebsiteUpdater(logger.NewLogger()),                                               // assuming you have a constructor
 			},
 			want: "<html><head><title>Test Title</title></head><body>Test Body</body></html>",
 		},

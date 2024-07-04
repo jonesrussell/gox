@@ -1,12 +1,17 @@
 package webserver
 
 import (
-	"jonesrussell/gocreate/debug"
+	"jonesrussell/gocreate/logger"
 	"net/http"
 	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+)
+
+// Create a new Logger and WebsiteUpdater once for all tests
+var (
+	logInstance = logger.NewLogger()
 )
 
 func TestNewServer(t *testing.T) {
@@ -47,11 +52,11 @@ func Test_webServer_GetURL(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &webServer{
-				debugger: &debug.LogDebugger{},
-				mux:      http.NewServeMux(),
-				srv:      &http.Server{Addr: tt.addr},
-				wg:       sync.WaitGroup{},
-				page:     &Page{},
+				logger: logInstance,
+				mux:    http.NewServeMux(),
+				srv:    &http.Server{Addr: tt.addr},
+				wg:     sync.WaitGroup{},
+				page:   &Page{},
 			}
 			if got := s.GetURL(); got != tt.want {
 				t.Errorf("webServer.GetURL() = %v, want %v", got, tt.want)

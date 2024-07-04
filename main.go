@@ -2,7 +2,7 @@ package main
 
 import (
 	"jonesrussell/gocreate/cmd"
-	"jonesrussell/gocreate/debug"
+	"jonesrussell/gocreate/logger"
 	"jonesrussell/gocreate/menu"
 	"jonesrussell/gocreate/webserver"
 	"log"
@@ -11,15 +11,15 @@ import (
 )
 
 func main() {
-	// Create a new LogDebugger
-	debugger := debug.NewLogDebugger()
-	err := debugger.Init()
+	// Create a new Logger
+	logger := logger.NewLogger()
+	err := logger.Init()
 	if err != nil {
-		log.Fatalf("Error initializing debugger: %v", err)
+		log.Fatalf("Error initializing logger: %v", err)
 	}
 
-	// Pass the Debugger to NewServer
-	server := webserver.NewServer(debugger)
+	// Pass the Logger to NewServer
+	server := webserver.NewServer(logger)
 
 	// Create tview.Application and tview.Pages instances
 	uiApp := tview.NewApplication()

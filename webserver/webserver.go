@@ -2,7 +2,7 @@ package webserver
 
 import (
 	"html/template"
-	"jonesrussell/gocreate/debug"
+	"jonesrussell/gocreate/logger"
 	"jonesrussell/gocreate/utils"
 	"log"
 	"net/http"
@@ -21,27 +21,29 @@ type WebServerInterface interface {
 
 // webServer is the actual implementation of the Server interface
 type webServer struct {
-	debugger debug.Debugger
-	mux      *http.ServeMux
-	srv      *http.Server
-	wg       sync.WaitGroup
-	page     *Page
+	logger logger.LoggerInterface
+	mux    *http.ServeMux
+	srv    *http.Server
+	wg     sync.WaitGroup
+	page   *Page
 }
 
 // NewServer returns a new Server
-func NewServer(debugger debug.Debugger) WebServerInterface {
+func NewServer(logger logger.LoggerInterface) WebServerInterface {
+	logger.Debug("Creating a new web server...")
+
 	// Create a new WebsiteUpdater
-	updater := NewWebsiteUpdater(debugger)
+	updater := NewWebsiteUpdater(logger)
 
 	// Explicitly use the FileReader interface when creating a new Page instance
 	body := "<h1>My Heading</h1>"
 	page := NewPage("My Title", template.HTML(body), utils.OSFileReader{}, updater, "static/index.html") // utils.OSFileReader{} is of type utils.FileReader
 
 	return &webServer{
-		debugger: debugger,
-		mux:      http.NewServeMux(),
-		srv:      &http.Server{Addr: "0.0.0.0:3000"},
-		page:     page,
+		logger: logger,
+		mux:    http.NewServeMux(),
+		srv:    &http.Server{Addr: ":3000"},
+		page:   page,
 	}
 }
 

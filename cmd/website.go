@@ -38,8 +38,9 @@ func (w *WebsiteCommand) handleDebugFlag(flagset *pflag.FlagSet) bool {
 func (w *WebsiteCommand) startServer() error {
 	err := w.server.Start()
 	if err != nil {
-		log.Println("Error starting server:", err)
-		return err
+		log.Fatalf("Error starting server: %v", err)
+	} else {
+		log.Println("Server started successfully")
 	}
 	return nil
 }
