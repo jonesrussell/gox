@@ -2,6 +2,7 @@ package websiteserver
 
 import (
 	"bytes"
+	"html/template"
 	"jonesrussell/gocreate/debug"
 	"jonesrussell/gocreate/utils"
 	"testing"
@@ -10,7 +11,7 @@ import (
 func TestPage_NewPage(t *testing.T) {
 	type args struct {
 		title    string
-		body     string
+		body     template.HTML
 		fr       utils.FileReader
 		updater  *WebsiteUpdater
 		filename string
@@ -24,9 +25,9 @@ func TestPage_NewPage(t *testing.T) {
 			name: "Test with valid title and body",
 			args: args{
 				title:    "Test Title",
-				body:     "Test Body",
-				fr:       utils.MockFileReader{},                    // using the MockFileReader struct
-				updater:  NewWebsiteUpdater(debug.NewLogDebugger()), // assuming you have a constructor
+				body:     template.HTML("Test Body"),
+				fr:       utils.MockFileReader{},
+				updater:  NewWebsiteUpdater(debug.NewLogDebugger()),
 				filename: "../static/index.html",
 			},
 			want: &Page{
@@ -110,7 +111,7 @@ func TestPage_Render(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &Page{
 				Title:   tt.fields.Title,
-				Body:    tt.fields.Body,
+				Body:    template.HTML(tt.fields.Body),
 				HTML:    tt.fields.HTML,
 				updater: tt.fields.updater,
 			}
@@ -154,7 +155,7 @@ func TestPage_GetHTML(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &Page{
 				Title:   tt.fields.Title,
-				Body:    tt.fields.Body,
+				Body:    template.HTML(tt.fields.Body),
 				HTML:    tt.fields.HTML,
 				updater: tt.fields.updater,
 			}

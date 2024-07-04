@@ -1,6 +1,7 @@
 package websiteserver
 
 import (
+	"html/template"
 	"jonesrussell/gocreate/debug"
 	"jonesrussell/gocreate/utils"
 	"log"
@@ -33,7 +34,8 @@ func NewServer(debugger debug.Debugger) WebsiteServerInterface {
 	updater := NewWebsiteUpdater(debugger)
 
 	// Explicitly use the FileReader interface when creating a new Page instance
-	page := NewPage("My Title", "<h1>My Heading</h1>", utils.OSFileReader{}, updater, "static/index.html") // utils.OSFileReader{} is of type utils.FileReader
+	body := "<h1>My Heading</h1>"
+	page := NewPage("My Title", template.HTML(body), utils.OSFileReader{}, updater, "static/index.html") // utils.OSFileReader{} is of type utils.FileReader
 
 	return &websiteServerImpl{
 		debugger: debugger,
@@ -92,7 +94,9 @@ func (s *websiteServerImpl) GetHTML() string {
 func (s *websiteServerImpl) GetURL() string {
 	addr := s.srv.Addr
 	if addr == ":3000" {
-		addr = "localhost:3000"
+		addr = "127.0.0.1:3000"
+	} else if addr == "0.0.0.0:3000" {
+		addr = "127.0.0.1:3000"
 	}
 	return "http://" + addr
 }

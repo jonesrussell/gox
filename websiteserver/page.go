@@ -2,6 +2,7 @@ package websiteserver
 
 import (
 	"bytes"
+	"html/template"
 	"jonesrussell/gocreate/utils"
 	"log"
 
@@ -10,7 +11,7 @@ import (
 
 type Page struct {
 	Title   string
-	Body    string
+	Body    template.HTML
 	HTML    []byte
 	updater *WebsiteUpdater
 }
@@ -18,7 +19,7 @@ type Page struct {
 // Modify NewPage to accept a FileReader, a WebsiteUpdater, and a filename as arguments
 func NewPage(
 	title string,
-	body string,
+	body template.HTML,
 	fr utils.FileReader,
 	updater *WebsiteUpdater,
 	filename string,
@@ -44,9 +45,7 @@ func (p *Page) Render() ([]byte, error) {
 
 	p.updater.ChangeTitle(doc, p.Title)
 
-	// Unescape the body before updating it
-	unescapedBody := html.UnescapeString(p.Body)
-	p.updater.ChangeBody(doc, unescapedBody)
+	p.updater.ChangeBody(doc, string(p.Body))
 
 	var buf bytes.Buffer
 	err = html.Render(&buf, doc)
@@ -72,6 +71,5 @@ func (p *Page) SetTitle(content string) {
 }
 
 func (p *Page) SetBody(content string) {
-	p.Title = content
-	// Add any additional logic here.
+	p.Body = template.HTML(content)
 }

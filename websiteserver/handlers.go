@@ -7,11 +7,15 @@ import (
 )
 
 func handleRequest(w http.ResponseWriter, r *http.Request, page *Page) error {
-	content, err := page.Render()
-	if err != nil {
-		return err
-	}
+	content := page.GetHTML()
 
-	http.ServeContent(w, r, "index.html", time.Now(), bytes.NewReader(content))
+	http.ServeContent(
+		w,
+		r,
+		"index.html",
+		time.Now(),
+		bytes.NewReader([]byte(content)),
+	)
+
 	return nil
 }

@@ -1,6 +1,7 @@
 package websiteserver
 
 import (
+	"html/template"
 	"log"
 	"net/http"
 	"sync"
@@ -42,7 +43,7 @@ func (ms *MockServer) UpdateTitle(title string) {
 
 func (ms *MockServer) UpdateBody(content string) {
 	log.Printf("Updating body to: %s\n", content)
-	ms.page.Body = content
+	ms.page.Body = template.HTML(content)
 }
 
 func (ms *MockServer) GetHTML() string {
