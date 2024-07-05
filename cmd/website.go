@@ -68,13 +68,18 @@ func (w *WebsiteCommand) createThirdColumn(
 }
 
 func (w *WebsiteCommand) createFlexLayout(
-	menuList *tview.List,
+	server webserver.WebServerInterface,
+	uiApp *tview.Application,
 	menuPages *tview.Pages,
 	htmlView *tview.TextView,
 	addressView *tview.TextView,
 ) *tview.Flex {
 	w.configureAddressView(addressView)
 	thirdColumn := w.createThirdColumn(htmlView, addressView)
+
+	// Use the Menu struct's CreateMenu() method to create and populate the menu
+	menu := ui.NewMenu(server, uiApp, menuPages)
+	menuList := menu.CreateMenu()
 
 	return tview.NewFlex().
 		// Left column (1/3 x width of screen)
@@ -116,7 +121,8 @@ func (w *WebsiteCommand) Command() *cobra.Command {
 			addressView := tview.NewTextView().SetText(w.server.GetURL())
 
 			layout := w.createFlexLayout(
-				w.ui.CreateMenu(),
+				w.server,
+				w.ui.GetApp(),
 				w.ui.GetPages(),
 				htmlView,
 				addressView,
