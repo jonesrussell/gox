@@ -1,6 +1,8 @@
 package logger
 
 import (
+	"io"
+	"log"
 	"log/slog"
 	"os"
 
@@ -28,11 +30,18 @@ func NewLogger(logFilePath string) (LoggerInterface, error) {
 	// Open the log file
 	file, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
+		log.Printf("Error opening log file: %v", err)
 		return nil, err
 	}
 
-	// Create a JSON handler for the file
-	fileHandler := slog.NewJSONHandler(file, &slog.HandlerOptions{
+	// Create a JSON handler for the file with immediate flushing
+	fileHandler := slog.NewJSONHandler(struct {
+		io.Writer
+		Sync func() error
+	}{
+		Writer: file,
+		Sync:   file.Sync,
+	}, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	})
 
@@ -46,6 +55,9 @@ func NewLogger(logFilePath string) (LoggerInterface, error) {
 
 	// Create the logger
 	logger := slog.New(multiHandler)
+
+	// Test log to file
+	logger.Info("Logger initialized", "file", logFilePath)
 
 	return &Logger{logger: logger}, nil
 }
