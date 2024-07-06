@@ -3,37 +3,40 @@ package webserver
 import (
 	"bytes"
 	"html/template"
+	"jonesrussell/gocreate/logger"
 	"jonesrussell/gocreate/utils"
-	"log"
 
 	"golang.org/x/net/html"
 )
 
 type Page struct {
-	Title   string
-	Body    template.HTML
-	HTML    []byte
-	updater *WebsiteUpdater
+	title        string
+	body         template.HTML
+	HTML         []byte
+	fileReader   utils.FileReader
+	updater      *WebsiteUpdater
+	templatePath string
+	updateChan   chan struct{}
+	logger       logger.LoggerInterface
 }
 
-// Modify NewPage to accept a FileReader, a WebsiteUpdater, and a filename as arguments
 func NewPage(
 	title string,
 	body template.HTML,
-	fr utils.FileReader,
+	fileReader utils.FileReader,
 	updater *WebsiteUpdater,
-	filename string,
+	templatePath string,
+	logger logger.LoggerInterface,
 ) *Page {
-	html, err := fr.ReadFile(filename)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	return &Page{
-		Title:   title,
-		Body:    body,
-		HTML:    html,
-		updater: updater,
+		title:        title,
+		body:         body,
+		HTML:         []byte{},
+		fileReader:   fileReader,
+		updater:      updater,
+		templatePath: templatePath,
+		updateChan:   make(chan struct{}, 1), // Buffer size of 1
+		logger:       logger,
 	}
 }
 
@@ -43,9 +46,9 @@ func (p *Page) Render() ([]byte, error) {
 		return nil, err
 	}
 
-	p.updater.ChangeTitle(doc, p.Title)
+	p.updater.ChangeTitle(doc, p.title)
 
-	p.updater.ChangeBody(doc, string(p.Body))
+	p.updater.ChangeBody(doc, string(p.body))
 
 	var buf bytes.Buffer
 	err = html.Render(&buf, doc)
@@ -56,20 +59,47 @@ func (p *Page) Render() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+func (p *Page) SetTitle(title string) {
+	p.logger.Debug("SetTitle called with title: " + title)
+	p.title = title
+	p.HTML = []byte{} // Clear cached HTML
+	p.logger.Debug("Title set successfully, cached HTML cleared")
+	p.notifyUpdate()
+	p.logger.Debug("notifyUpdate called after setting title")
+}
+
+func (p *Page) SetBody(body string) {
+	p.logger.Debug("SetBody called with body: " + body)
+	p.body = template.HTML(body)
+	p.HTML = []byte{} // Clear cached HTML
+	p.logger.Debug("Body set successfully, cached HTML cleared")
+	p.notifyUpdate()
+	p.logger.Debug("notifyUpdate called after setting body")
+}
+
 func (p *Page) GetHTML() string {
-	rendered, err := p.Render()
-	if err != nil {
-		log.Println("Error rendering page:", err)
-		return ""
+	p.logger.Debug("GetHTML called")
+	if len(p.HTML) == 0 {
+		p.logger.Debug("Cached HTML is empty, generating new HTML")
+		html, err := p.updater.UpdateWebsite(p.title, string(p.body), p.templatePath)
+		if err != nil {
+			p.logger.Error("Error updating website: ", err)
+			return ""
+		}
+		p.HTML = []byte(html)
+		p.logger.Debug("New HTML generated and cached successfully")
+	} else {
+		p.logger.Debug("Returning cached HTML")
 	}
-	return string(rendered)
+	return string(p.HTML)
 }
 
-func (p *Page) SetTitle(content string) {
-	p.Title = content
-	// Add any additional logic here.
-}
-
-func (p *Page) SetBody(content string) {
-	p.Body = template.HTML(content)
+func (p *Page) notifyUpdate() {
+	p.logger.Debug("notifyUpdate called")
+	select {
+	case p.updateChan <- struct{}{}:
+		p.logger.Debug("Update notification sent successfully")
+	default:
+		p.logger.Debug("Update channel is full, notification not sent")
+	}
 }

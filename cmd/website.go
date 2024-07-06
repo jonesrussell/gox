@@ -1,7 +1,8 @@
 package cmd
 
 import (
-	"jonesrussell/gocreate/ui" // Import the ui package
+	"fmt"
+	"jonesrussell/gocreate/ui"
 	"jonesrussell/gocreate/webserver"
 	"log"
 
@@ -11,9 +12,11 @@ import (
 )
 
 type WebsiteCommand struct {
-	server webserver.WebServerInterface
-	menu   ui.MenuInterface
-	ui     ui.UIInterface
+	server     webserver.WebServerInterface
+	menu       ui.MenuInterface
+	ui         ui.UIInterface
+	updateChan <-chan struct{}
+	htmlView   *tview.TextView
 }
 
 func NewWebsiteCommand(
@@ -21,11 +24,24 @@ func NewWebsiteCommand(
 	menu ui.MenuInterface,
 	ui ui.UIInterface,
 ) *WebsiteCommand {
-	return &WebsiteCommand{
-		server: server,
-		menu:   menu,
-		ui:     ui,
+	htmlView := tview.NewTextView().
+		SetDynamicColors(true).
+		SetChangedFunc(func() {
+			ui.GetApp().Draw()
+		})
+
+	cmd := &WebsiteCommand{
+		server:     server,
+		menu:       menu,
+		ui:         ui,
+		updateChan: server.GetUpdateChan(),
+		htmlView:   htmlView,
 	}
+
+	// Initialize HTML content
+	cmd.updateHTMLView()
+
+	return cmd
 }
 
 func (w *WebsiteCommand) HandleDebugFlag(flagset *pflag.FlagSet) bool {
@@ -51,7 +67,8 @@ func (w *WebsiteCommand) StartServer() error {
 
 func (w *WebsiteCommand) ConfigureAddressView(addressView *tview.TextView) {
 	// Add a border and title to the addressView
-	addressView.SetBorder(true).SetTitle("Webserver")
+	addressView.SetBorder(true).
+		SetTitle("Webserver")
 }
 
 func (w *WebsiteCommand) CreateThirdColumn(
@@ -61,7 +78,7 @@ func (w *WebsiteCommand) CreateThirdColumn(
 	// Create a new Flex for the third column
 	return tview.NewFlex().
 		SetDirection(tview.FlexRow).
-		// addressView takes up 1/8th of the height
+		// addressView takes up 1/7th of the height
 		AddItem(addressView, 0, 1, false).
 		// htmlView takes up the rest of the height (7/8th)
 		AddItem(htmlView, 0, 6, false)
@@ -92,8 +109,24 @@ func (w *WebsiteCommand) CreateFlexLayout(
 
 func (w *WebsiteCommand) runApp(layout *tview.Flex) {
 	if err := w.ui.GetApp().SetRoot(layout, true).Run(); err != nil {
-		log.Fatalf("Error running application: %v", err)
+		log.Fatalf("Error creating UI: %v", err)
 	}
+}
+
+func (w *WebsiteCommand) updateHTMLView() {
+	html := w.server.GetHTML()
+	w.htmlView.Clear()
+	fmt.Fprintf(w.htmlView, "%s", html)
+}
+
+func (w *WebsiteCommand) startHTMLViewUpdater() {
+	go func() {
+		for range w.updateChan {
+			w.ui.GetApp().QueueUpdateDraw(func() {
+				w.updateHTMLView()
+			})
+		}
+	}()
 }
 
 func (w *WebsiteCommand) Command() *cobra.Command {
@@ -115,7 +148,8 @@ func (w *WebsiteCommand) Command() *cobra.Command {
 				return
 			}
 
-			htmlView := tview.NewTextView().SetText(w.server.GetHTML())
+			// Start the HTML view updater
+			w.startHTMLViewUpdater()
 
 			// Create a TextView for the server address
 			addressView := tview.NewTextView().SetText(w.server.GetURL())
@@ -124,7 +158,7 @@ func (w *WebsiteCommand) Command() *cobra.Command {
 				w.server,
 				w.ui.GetApp(),
 				w.ui.GetPages(),
-				htmlView,
+				w.htmlView, // Use w.htmlView instead of creating a new one
 				addressView,
 			)
 

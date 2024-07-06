@@ -18,6 +18,7 @@ type WebServerInterface interface {
 	GetHTML() string
 	GetURL() string
 	Logger() logger.LoggerInterface
+	GetUpdateChan() <-chan struct{}
 }
 
 // webServer is the actual implementation of the Server interface
@@ -38,7 +39,8 @@ func NewServer(logger logger.LoggerInterface) WebServerInterface {
 
 	// Explicitly use the FileReader interface when creating a new Page instance
 	body := "<h1>My Heading</h1>"
-	page := NewPage("My Title", template.HTML(body), utils.OSFileReader{}, updater, "static/index.html") // utils.OSFileReader{} is of type utils.FileReader
+	// page := NewPage("My Title", template.HTML(body), utils.OSFileReader{}, updater, "static/index.html") // utils.OSFileReader{} is of type utils.FileReader
+	page := NewPage("My Title", template.HTML(body), utils.OSFileReader{}, updater, "static/index.html", logger)
 
 	return &webServer{
 		logger: logger,
@@ -97,11 +99,27 @@ func (s *webServer) Stop() error {
 }
 
 func (s *webServer) UpdateTitle(content string) {
+	s.logger.Debug("UpdateTitle called with content: " + content)
 	s.page.SetTitle(content)
+	s.logger.Debug("Title updated, sending update signal")
+	select {
+	case s.page.updateChan <- struct{}{}:
+		s.logger.Debug("Update signal sent successfully")
+	default:
+		s.logger.Debug("Update channel is full, skipping signal")
+	}
 }
 
 func (s *webServer) UpdateBody(content string) {
+	s.logger.Debug("UpdateBody called with content: " + content)
 	s.page.SetBody(content)
+	s.logger.Debug("Body updated, sending update signal")
+	select {
+	case s.page.updateChan <- struct{}{}:
+		s.logger.Debug("Update signal sent successfully")
+	default:
+		s.logger.Debug("Update channel is full, skipping signal")
+	}
 }
 
 func (s *webServer) GetHTML() string {
@@ -111,9 +129,13 @@ func (s *webServer) GetHTML() string {
 func (s *webServer) GetURL() string {
 	addr := s.srv.Addr
 	if addr == ":3000" {
-		addr = "127.0.0.1:3000"
+		addr = "localhost:3000"
 	} else if addr == "0.0.0.0:3000" {
-		addr = "127.0.0.1:3000"
+		addr = "localhost:3000"
 	}
 	return "http://" + addr
+}
+
+func (s *webServer) GetUpdateChan() <-chan struct{} {
+	return s.page.updateChan
 }
