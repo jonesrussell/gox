@@ -31,7 +31,7 @@ func NewMockServer(page *Page) WebServerInterface {
 			"Mock Title",
 			template.HTML("<h1>Mock Body</h1>"),
 			utils.OSFileReader{},
-			NewWebsiteUpdater(wslog),
+			NewPageUpdater(wslog),
 			"../static/index.html",
 			wslog,
 		)

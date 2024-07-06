@@ -14,7 +14,7 @@ type Page struct {
 	body         template.HTML
 	HTML         []byte
 	fileReader   utils.FileReaderInterface
-	updater      WebsiteUpdaterInterface
+	updater      PageUpdaterInterface
 	templatePath string
 	updateChan   chan struct{}
 	logger       logger.LoggerInterface
@@ -24,7 +24,7 @@ func NewPage(
 	title string,
 	body template.HTML,
 	fileReader utils.FileReaderInterface,
-	updater WebsiteUpdaterInterface,
+	updater PageUpdaterInterface,
 	templatePath string,
 	logger logger.LoggerInterface,
 ) *Page {
@@ -39,7 +39,7 @@ func NewPage(
 	}
 
 	// Update the website using the updater
-	html, err := updater.UpdateWebsite(title, string(body), templatePath)
+	html, err := updater.UpdatePage(title, string(body), templatePath)
 	if err != nil {
 		logger.Error("Error updating website:", err)
 		return page
@@ -91,7 +91,7 @@ func (p *Page) GetHTML() string {
 	p.logger.Debug("GetHTML called")
 	if len(p.HTML) == 0 {
 		p.logger.Debug("Cached HTML is empty, generating new HTML")
-		html, err := p.updater.UpdateWebsite(p.title, string(p.body), p.templatePath)
+		html, err := p.updater.UpdatePage(p.title, string(p.body), p.templatePath)
 		if err != nil {
 			p.logger.Error("Error updating website: ", err)
 			return ""

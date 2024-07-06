@@ -35,7 +35,7 @@ func NewServer(logger logger.LoggerInterface) WebServerInterface {
 	logger.Debug("Creating a new web server...")
 
 	// Create a new WebsiteUpdater
-	updater := NewWebsiteUpdater(logger)
+	updater := NewPageUpdater(logger)
 
 	// Explicitly use the FileReader interface when creating a new Page instance
 	body := "<h1>My Heading</h1>"

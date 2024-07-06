@@ -19,7 +19,7 @@ const (
 
 func TestPage_NewPage(t *testing.T) {
 	mockFileReader := &MockFileReader{}
-	mockUpdater := &MockWebsiteUpdater{}
+	mockUpdater := &MockPageUpdater{}
 	mockLogger := new(logger.MockLogger)
 
 	title := "Test Title"
@@ -30,7 +30,7 @@ func TestPage_NewPage(t *testing.T) {
 
 	// Set up the mock updater to return the expected HTML
 	// This needs to be done BEFORE calling NewPage
-	mockUpdater.On("UpdateWebsite", title, string(body), templatePath).Return(expectedHTML, nil)
+	mockUpdater.On("UpdatePage", title, string(body), templatePath).Return(expectedHTML, nil)
 
 	page := NewPage(title, body, mockFileReader, mockUpdater, templatePath, mockLogger)
 
@@ -85,7 +85,7 @@ func TestPage_Render(t *testing.T) {
 				title:   tt.title,
 				body:    template.HTML(tt.body),
 				HTML:    []byte(mockHTML),
-				updater: NewWebsiteUpdater(logInstance),
+				updater: NewPageUpdater(logInstance),
 			}
 			got, err := p.Render()
 			if tt.wantErr {
@@ -101,8 +101,8 @@ func TestPage_Render(t *testing.T) {
 func TestPage_GetHTML(t *testing.T) {
 	t.Run("Test with valid title and body", func(t *testing.T) {
 		// Create a mock updater
-		mockUpdater := new(MockWebsiteUpdater)
-		mockUpdater.On("UpdateWebsite", mock.Anything, mock.Anything, mock.Anything).Return("<html><head><title>Test Title</title></head><body><p>Test Body</p></body></html>", nil)
+		mockUpdater := new(MockPageUpdater)
+		mockUpdater.On("UpdatePage", mock.Anything, mock.Anything, mock.Anything).Return("<html><head><title>Test Title</title></head><body><p>Test Body</p></body></html>", nil)
 
 		// Create a mock file reader
 		mockFileReader := new(MockFileReader)
@@ -131,7 +131,7 @@ func TestPage_GetHTML(t *testing.T) {
 		assert.Contains(t, html, "<p>Test Body</p>")
 
 		// Verify that methods were called
-		mockUpdater.AssertCalled(t, "UpdateWebsite", mock.Anything, mock.Anything, mock.Anything)
+		mockUpdater.AssertCalled(t, "UpdatePage", mock.Anything, mock.Anything, mock.Anything)
 		mockLogger.AssertCalled(t, "Debug", mock.Anything, mock.Anything)
 	})
 }
