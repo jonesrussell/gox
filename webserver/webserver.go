@@ -1,13 +1,14 @@
 package webserver
 
 import (
+	"fmt"
 	"html/template"
 	"jonesrussell/gocreate/logger"
 	"jonesrussell/gocreate/utils"
 	"net/http"
 	"sync"
 
-	"github.com/tmaxmax/go-sse"
+	sse "github.com/r3labs/sse/v2"
 )
 
 // Define the WebServerInterface interface
@@ -44,13 +45,18 @@ func NewServer(logger logger.LoggerInterface) WebServerInterface {
 	// Explicitly use the FileReader interface when creating a new Page instance
 	page := NewPage("My Title", template.HTML(body), utils.OSFileReader{}, updater, "static/index.html", logger)
 
-	return &webServer{
+	s := &webServer{
 		logger:    logger,
 		mux:       http.NewServeMux(),
 		srv:       &http.Server{Addr: ":3000"},
 		page:      page,
-		sseServer: &sse.Server{}, // Initialize the SSE server here
+		sseServer: sse.New(), // Initialize the SSE server here
 	}
+
+	// Create the SSE server
+	s.sseServer.CreateStream("messages")
+
+	return s
 }
 
 func (s *webServer) Logger() logger.LoggerInterface {
@@ -59,7 +65,7 @@ func (s *webServer) Logger() logger.LoggerInterface {
 
 func (s *webServer) setupRoutes() {
 	s.mux.HandleFunc("/", s.handleRootRequest)
-	s.mux.HandleFunc("/updates", s.handleUpdatesRequest)
+	s.mux.HandleFunc("/updates", s.sseServer.ServeHTTP)
 }
 
 func (s *webServer) Start() error {
@@ -97,6 +103,7 @@ func (s *webServer) Stop() error {
 func (s *webServer) UpdateTitle(content string) {
 	s.logger.Debug("UpdateTitle called with content: " + content)
 	s.page.SetTitle(content)
+	s.ssePublishUpdate(content, s.page.GetBody()) // pass the title and body to the function
 	s.logger.Debug("Title updated, sending update signal")
 	select {
 	case s.page.updateChan <- struct{}{}:
@@ -109,6 +116,7 @@ func (s *webServer) UpdateTitle(content string) {
 func (s *webServer) UpdateBody(content string) {
 	s.logger.Debug("UpdateBody called with content: " + content)
 	s.page.SetBody(content)
+	s.ssePublishUpdate(s.page.GetTitle(), content) // pass the title and body to the function
 	s.logger.Debug("Body updated, sending update signal")
 	select {
 	case s.page.updateChan <- struct{}{}:
@@ -134,4 +142,16 @@ func (s *webServer) GetURL() string {
 
 func (s *webServer) GetUpdateChan() <-chan struct{} {
 	return s.page.updateChan
+}
+
+func (s *webServer) ssePublishUpdate(title string, body string) {
+	s.logger.Debug("ssePublishUpdate called")
+
+	// Create a new event
+	event := &sse.Event{
+		Data: []byte(fmt.Sprintf("Title: %s, Body: %s", title, body)),
+	}
+
+	// Publish the event to the "messages" channel
+	s.sseServer.Publish("messages", event)
 }

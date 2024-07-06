@@ -4,6 +4,7 @@ go 1.22
 
 require (
 	github.com/google/uuid v1.6.0
+	github.com/r3labs/sse/v2 v2.10.0
 	github.com/rivo/tview v0.0.0-20240625185742-b0a7293b8130
 	github.com/samber/slog-multi v1.1.0
 	github.com/spf13/cobra v1.8.1
@@ -27,5 +28,6 @@ require (
 	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/term v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
+	gopkg.in/cenkalti/backoff.v1 v1.1.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

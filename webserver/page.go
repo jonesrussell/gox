@@ -87,6 +87,16 @@ func (p *Page) SetBody(body string) {
 	p.logger.Debug("notifyUpdate called after setting body")
 }
 
+func (p *Page) GetTitle() string {
+	p.logger.Debug("GetTitle called")
+	return p.title
+}
+
+func (p *Page) GetBody() string {
+	p.logger.Debug("GetBody called")
+	return string(p.body)
+}
+
 func (p *Page) GetHTML() string {
 	p.logger.Debug("GetHTML called")
 	if len(p.HTML) == 0 {

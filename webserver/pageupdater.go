@@ -101,7 +101,7 @@ func (p *PageUpdater) UpdatePage(title, body, templatePath string) (string, erro
 	}
 
 	// Publish an update event
-	p.publishUpdateEvent(htmlString)
+	p.publishPageUpdate(htmlString)
 
 	p.logger.Debug("Page updated successfully")
 	return htmlString, nil
@@ -138,8 +138,8 @@ func (p *PageUpdater) renderHTML(doc *html.Node) (string, error) {
 	return buf.String(), nil
 }
 
-func (p *PageUpdater) publishUpdateEvent(htmlString string) {
-	p.logger.Debug("publishUpdateEvent called with htmlString: " + htmlString)
+func (p *PageUpdater) publishPageUpdate(htmlString string) {
+	p.logger.Debug("publishPageUpdate called with htmlString: " + htmlString)
 
 	e := &sse.Message{}
 	e.AppendData(htmlString)

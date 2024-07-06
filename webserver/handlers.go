@@ -30,14 +30,14 @@ func (s *webServer) handleRootRequest(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *webServer) handleUpdatesRequest(w http.ResponseWriter, r *http.Request) {
-	s.logger.Debug("Received request at /updates endpoint")
+// func (s *webServer) handleUpdatesRequest(w http.ResponseWriter, r *http.Request) {
+// 	s.logger.Debug("Received request at /updates endpoint")
 
-	// Log the details of the request
-	s.logger.Debug(fmt.Sprintf("Request Method: %s, URL: %s", r.Method, r.URL))
+// 	// Log the details of the request
+// 	s.logger.Debug(fmt.Sprintf("Request Method: %s, URL: %s", r.Method, r.URL))
 
-	// Use the sseServer to handle the SSE
-	s.logger.Debug("Handling the SSE request")
-	s.sseServer.ServeHTTP(w, r)
-	s.logger.Debug("Finished handling the SSE request")
-}
+// 	// Use the sseServer to handle the SSE
+// 	s.logger.Debug("Handling the SSE request")
+// 	s.sseServer.ServeHTTP(w, r)
+// 	s.logger.Debug("Finished handling the SSE request")
+// }
