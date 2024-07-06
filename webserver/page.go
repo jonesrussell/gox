@@ -28,16 +28,26 @@ func NewPage(
 	templatePath string,
 	logger logger.LoggerInterface,
 ) *Page {
-	return &Page{
+	page := &Page{
 		title:        title,
 		body:         body,
-		HTML:         []byte{},
 		fileReader:   fileReader,
 		updater:      updater,
 		templatePath: templatePath,
-		updateChan:   make(chan struct{}, 1), // Buffer size of 1
+		updateChan:   make(chan struct{}, 1),
 		logger:       logger,
 	}
+
+	// Update the website using the updater
+	html, err := updater.UpdateWebsite(title, string(body), templatePath)
+	if err != nil {
+		logger.Error("Error updating website:", err)
+		return page
+	}
+
+	page.HTML = []byte(html)
+
+	return page
 }
 
 func (p *Page) Render() ([]byte, error) {
