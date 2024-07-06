@@ -1,7 +1,9 @@
 package webserver
 
 import (
+	"bytes"
 	"jonesrussell/gocreate/logger"
+	"os"
 
 	"golang.org/x/net/html"
 )
@@ -52,4 +54,37 @@ func (w *WebsiteUpdater) ChangeBody(n *html.Node, newBody string) {
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
 		w.ChangeBody(c, newBody)
 	}
+}
+
+func (w *WebsiteUpdater) UpdateWebsite(title, body, templatePath string) (string, error) {
+	w.logger.Debug("UpdateWebsite called with title: " + title + " and body: " + body)
+
+	// Read the template file
+	content, err := os.ReadFile(templatePath)
+	if err != nil {
+		w.logger.Error("Error reading template file: ", err)
+		return "", err
+	}
+
+	// Parse the HTML
+	doc, err := html.Parse(bytes.NewReader(content))
+	if err != nil {
+		w.logger.Error("Error parsing HTML: ", err)
+		return "", err
+	}
+
+	// Update the title and body
+	w.ChangeTitle(doc, title)
+	w.ChangeBody(doc, body)
+
+	// Render the updated HTML
+	var buf bytes.Buffer
+	err = html.Render(&buf, doc)
+	if err != nil {
+		w.logger.Error("Error rendering HTML: ", err)
+		return "", err
+	}
+
+	w.logger.Debug("Website updated successfully")
+	return buf.String(), nil
 }
