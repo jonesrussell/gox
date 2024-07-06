@@ -4,7 +4,6 @@ import (
 	"html/template"
 	"jonesrussell/gocreate/logger"
 	"jonesrussell/gocreate/utils"
-	"net"
 	"net/http"
 	"sync"
 
@@ -58,41 +57,29 @@ func (s *webServer) Logger() logger.LoggerInterface {
 	return s.logger
 }
 
+func (s *webServer) setupRoutes() {
+	s.mux.HandleFunc("/", s.handleRootRequest)
+	s.mux.HandleFunc("/updates", s.handleUpdatesRequest)
+}
+
 func (s *webServer) Start() error {
-	// Check for errors before starting the goroutine
-	listener, err := net.Listen("tcp", ":3000")
-	if err != nil {
-		s.logger.Error("Error starting server: ", err)
-		return err
-	}
-
-	s.mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		err := handleRequest(w, r, s.page)
-		if err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			s.logger.Error("Error handling request: ", err)
-		}
-	})
-
-	s.mux.HandleFunc("/updates", func(w http.ResponseWriter, r *http.Request) {
-		// Use the sseServer to handle the SSE
-		s.sseServer.ServeHTTP(w, r)
-	})
-
+	s.setupRoutes()
 	s.srv.Handler = s.mux
 
 	s.wg.Add(1)
-	go func() {
-		defer s.wg.Done()
-
-		if err := s.srv.Serve(listener); err != http.ErrServerClosed {
-			s.logger.Error("Server stopped with error: ", err)
-		} else {
-			s.logger.Debug("Server stopped normally")
-		}
-	}()
+	go s.startServer()
 
 	return nil
+}
+
+func (s *webServer) startServer() {
+	defer s.wg.Done()
+
+	if err := s.srv.ListenAndServe(); err != http.ErrServerClosed {
+		s.logger.Error("Server stopped with error: ", err)
+	} else {
+		s.logger.Debug("Server stopped normally")
+	}
 }
 
 func (s *webServer) Stop() error {

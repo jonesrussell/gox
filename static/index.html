@@ -1,16 +1,23 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <title>Welcome to My Website</title>
     <script>
+        console.log('Hello, SSE!');
+
         // Create a new EventSource that connects to the /updates endpoint
         const evtSource = new EventSource("/updates");
 
         // Set up an event listener for the message event
-        evtSource.onmessage = function (event) {
+        evtSource.onmessage = (event) => {
             // Log the event data to the console
-            console.log(event.data);
+            console.log(event);
+        };
+
+        // Add an event listener for errors
+        evtSource.onerror = (err) => {
+            console.error("EventSource failed:", err);
         };
     </script>
 </head>

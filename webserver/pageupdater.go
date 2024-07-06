@@ -139,7 +139,16 @@ func (p *PageUpdater) renderHTML(doc *html.Node) (string, error) {
 }
 
 func (p *PageUpdater) publishUpdateEvent(htmlString string) {
+	p.logger.Debug("publishUpdateEvent called with htmlString: " + htmlString)
+
 	e := &sse.Message{}
 	e.AppendData(htmlString)
-	p.sseServer.Publish(e)
+
+	err := p.sseServer.Publish(e)
+	if err != nil {
+		p.logger.Error("Error publishing update event: ", err)
+		return
+	}
+
+	p.logger.Debug("Update event published successfully")
 }
