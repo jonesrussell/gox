@@ -2,8 +2,8 @@ package utils
 
 import "os"
 
-// FileReader is an interface that has a ReadFile method
-type FileReader interface {
+// FileReaderInterface is an interface that has a ReadFile method
+type FileReaderInterface interface {
 	ReadFile(filename string) ([]byte, error)
 }
 

@@ -39,8 +39,8 @@ func TestNewServer(t *testing.T) {
 	assert.NotNil(t, server.(*MockServer).page)
 
 	// Test default values
-	assert.Equal(t, "Mock Title", server.(*MockServer).page.Title)
-	assert.Equal(t, template.HTML("<h1>Mock Body</h1>"), server.(*MockServer).page.Body)
+	assert.Equal(t, "Mock Title", server.(*MockServer).page.title)
+	assert.Equal(t, template.HTML("<h1>Mock Body</h1>"), server.(*MockServer).page.body)
 }
 
 func TestMockServer_StartStop(t *testing.T) {

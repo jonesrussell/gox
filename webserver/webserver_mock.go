@@ -10,34 +10,38 @@ import (
 )
 
 type MockServer struct {
-	srv  *http.Server
-	wg   sync.WaitGroup
-	page *Page
-	log  logger.LoggerInterface
+	srv        *http.Server
+	wg         sync.WaitGroup
+	page       *Page
+	log        logger.LoggerInterface
+	updateChan chan struct{}
 }
 
 var _ WebServerInterface = (*MockServer)(nil)
 
 func NewMockServer(page *Page) WebServerInterface {
-	if page == nil {
-		page = NewPage(
-			"Mock Title",
-			template.HTML("<h1>Mock Body</h1>"),
-			utils.OSFileReader{},
-			NewWebsiteUpdater(nil), "../static/index.html",
-		)
-	}
-
 	var err error
 	wslog, err := logger.NewLogger("/tmp/gocreate-test.go")
 	if err != nil {
 		log.Fatalf("Error initializing logger: %v", err)
 	}
 
+	if page == nil {
+		page = NewPage(
+			"Mock Title",
+			template.HTML("<h1>Mock Body</h1>"),
+			utils.OSFileReader{},
+			NewWebsiteUpdater(wslog),
+			"../static/index.html",
+			wslog,
+		)
+	}
+
 	return &MockServer{
-		srv:  &http.Server{Addr: ":3000"},
-		page: page,
-		log:  wslog,
+		srv:        &http.Server{Addr: ":3000"},
+		page:       page,
+		log:        wslog,
+		updateChan: make(chan struct{}),
 	}
 }
 
@@ -55,14 +59,27 @@ func (ms *MockServer) Stop() error {
 	return nil
 }
 
+func (ms *MockServer) GetUpdateChan() <-chan struct{} {
+	return ms.updateChan
+}
+
 func (ms *MockServer) UpdateTitle(title string) {
 	log.Printf("Updating title to: %s\n", title)
-	ms.page.Title = title
+	ms.page.title = title
+	ms.notifyUpdate()
 }
 
 func (ms *MockServer) UpdateBody(content string) {
 	log.Printf("Updating body to: %s\n", content)
-	ms.page.Body = template.HTML(content)
+	ms.page.body = template.HTML(content)
+	ms.notifyUpdate()
+}
+
+func (ms *MockServer) notifyUpdate() {
+	select {
+	case ms.updateChan <- struct{}{}:
+	default:
+	}
 }
 
 func (ms *MockServer) GetHTML() string {

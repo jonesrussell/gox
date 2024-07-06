@@ -13,8 +13,8 @@ type Page struct {
 	title        string
 	body         template.HTML
 	HTML         []byte
-	fileReader   utils.FileReader
-	updater      *WebsiteUpdater
+	fileReader   utils.FileReaderInterface
+	updater      WebsiteUpdaterInterface
 	templatePath string
 	updateChan   chan struct{}
 	logger       logger.LoggerInterface
@@ -23,8 +23,8 @@ type Page struct {
 func NewPage(
 	title string,
 	body template.HTML,
-	fileReader utils.FileReader,
-	updater *WebsiteUpdater,
+	fileReader utils.FileReaderInterface,
+	updater WebsiteUpdaterInterface,
 	templatePath string,
 	logger logger.LoggerInterface,
 ) *Page {

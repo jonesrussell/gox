@@ -4,9 +4,16 @@ import (
 	"bytes"
 	"jonesrussell/gocreate/logger"
 	"os"
+	"strings"
 
 	"golang.org/x/net/html"
 )
+
+type WebsiteUpdaterInterface interface {
+	ChangeTitle(doc *html.Node, title string)
+	ChangeBody(doc *html.Node, body string)
+	UpdateWebsite(title string, body string, templatePath string) (string, error)
+}
 
 type WebsiteUpdater struct {
 	logger logger.LoggerInterface
@@ -36,16 +43,21 @@ func (w *WebsiteUpdater) ChangeBody(n *html.Node, newBody string) {
 		// Clear existing children
 		for c := n.FirstChild; c != nil; {
 			next := c.NextSibling
-			n.RemoveChild(c) // RemoveChild will not remove nodes that are not direct children of n
+			n.RemoveChild(c)
 			c = next
 		}
 
-		// Append new content as a text node
-		newNode := &html.Node{
-			Type: html.TextNode,
-			Data: newBody,
+		// Parse the new body content
+		newBodyDoc, err := html.Parse(strings.NewReader(newBody))
+		if err != nil {
+			w.logger.Error("Error parsing new body content: ", err)
+			return
 		}
-		n.AppendChild(newNode)
+
+		// Append the children of the body of the new content
+		for c := newBodyDoc.FirstChild.LastChild.FirstChild; c != nil; c = c.NextSibling {
+			n.AppendChild(c)
+		}
 
 		return
 	}
