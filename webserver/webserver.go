@@ -64,8 +64,14 @@ func (s *webServer) Logger() logger.LoggerInterface {
 }
 
 func (s *webServer) setupRoutes() {
-	s.mux.HandleFunc("/", s.handleRootRequest)
+	// Serve the SSE endpoint
 	s.mux.HandleFunc("/updates", s.sseServer.ServeHTTP)
+
+	// Serve static files from the "static/js" directory
+	s.mux.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("static/js"))))
+
+	// Serve static html files from the "static" directory
+	s.mux.HandleFunc("/", s.handleRootRequest)
 }
 
 func (s *webServer) Start() error {
