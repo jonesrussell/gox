@@ -7,7 +7,6 @@ import (
 
 	"jonesrussell/gocreate/logger"
 
-	"github.com/tmaxmax/go-sse"
 	"golang.org/x/net/html"
 )
 
@@ -18,14 +17,12 @@ type PageUpdaterInterface interface {
 }
 
 type PageUpdater struct {
-	logger    logger.LoggerInterface
-	sseServer *sse.Server
+	logger logger.LoggerInterface
 }
 
 func NewPageUpdater(logger logger.LoggerInterface) *PageUpdater {
 	return &PageUpdater{
-		logger:    logger,
-		sseServer: &sse.Server{},
+		logger: logger,
 	}
 }
 
@@ -100,9 +97,6 @@ func (p *PageUpdater) UpdatePage(title, body, templatePath string) (string, erro
 		return "", err
 	}
 
-	// Publish an update event
-	p.publishPageUpdate(htmlString)
-
 	p.logger.Debug("Page updated successfully")
 	return htmlString, nil
 }
@@ -136,19 +130,4 @@ func (p *PageUpdater) renderHTML(doc *html.Node) (string, error) {
 		return "", err
 	}
 	return buf.String(), nil
-}
-
-func (p *PageUpdater) publishPageUpdate(htmlString string) {
-	p.logger.Debug("publishPageUpdate called with htmlString: " + htmlString)
-
-	e := &sse.Message{}
-	e.AppendData(htmlString)
-
-	err := p.sseServer.Publish(e)
-	if err != nil {
-		p.logger.Error("Error publishing update event: ", err)
-		return
-	}
-
-	p.logger.Debug("Update event published successfully")
 }
