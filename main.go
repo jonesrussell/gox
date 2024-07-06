@@ -12,10 +12,9 @@ import (
 
 func main() {
 	// Create a new Logger
-	logger := logger.NewLogger("/tmp/gocreate.log")
-	err := logger.Init()
+	logger, err := logger.NewLogger("/tmp/gocreate.log")
 	if err != nil {
-		log.Fatalf("Error initializing logger: %v", err)
+		log.Fatalf("Error creating NewLogger: %v", err)
 	}
 
 	// Pass the Logger to NewServer

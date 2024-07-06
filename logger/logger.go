@@ -1,68 +1,71 @@
 package logger
 
 import (
-	"io"
-	"log"
+	"log/slog"
 	"os"
+
+	slogmulti "github.com/samber/slog-multi"
 )
 
 // LoggerInterface is an interface for different types of debugging backends
 type LoggerInterface interface {
-	Init() error
-	Log(message string)
-	Debug(message string)
-	Error(message string, err error)
+	Debug(msg string, args ...any)
+	Info(msg string, args ...any)
+	Warn(msg string, args ...any)
+	Error(msg string, err error, args ...any)
 }
 
-// Logger is the simplest logger which prints log messages to the specified log file
+// Logger is a structured logger that logs to both file and stdout
 type Logger struct {
-	Output   io.Writer
-	instance *log.Logger
+	logger *slog.Logger
 }
 
 // Ensure Logger implements LoggerInterface
 var _ LoggerInterface = &Logger{}
 
 // NewLogger creates a new instance of Logger
-func NewLogger(logFilePath string) LoggerInterface {
+func NewLogger(logFilePath string) (LoggerInterface, error) {
+	// Open the log file
 	file, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		log.Fatalf("Error opening log file: %v", err)
+		return nil, err
 	}
 
-	logger := &Logger{
-		Output:   file,
-		instance: log.New(file, "", 0),
-	}
+	// Create a JSON handler for the file
+	fileHandler := slog.NewJSONHandler(file, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	})
 
-	err = logger.Init()
-	if err != nil {
-		log.Fatalf("Error initializing logger: %v", err)
-	}
+	// Create a text handler for stdout
+	stdoutHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	})
 
-	return logger
+	// Combine both handlers using slog-multi
+	multiHandler := slogmulti.Fanout(fileHandler, stdoutHandler)
+
+	// Create the logger
+	logger := slog.New(multiHandler)
+
+	return &Logger{logger: logger}, nil
 }
 
-// Init initializes the Logger
-func (l *Logger) Init() error {
-	if l.Output == nil {
-		l.Output = os.Stderr
-	}
-	l.instance = log.New(l.Output, "", 0)
-	return nil
+// Debug logs a debug message
+func (l *Logger) Debug(msg string, args ...any) {
+	l.logger.Debug(msg, args...)
 }
 
-// Log prints the log message to the log file
-func (l *Logger) Log(message string) {
-	l.instance.Println(message)
+// Info logs an info message
+func (l *Logger) Info(msg string, args ...any) {
+	l.logger.Info(msg, args...)
 }
 
-// Debug prints the debug message to the log file
-func (l *Logger) Debug(message string) {
-	l.instance.Println(message)
+// Warn logs a warning message
+func (l *Logger) Warn(msg string, args ...any) {
+	l.logger.Warn(msg, args...)
 }
 
-// Error logs an error message with the given error
-func (l *Logger) Error(message string, err error) {
-	l.instance.Printf("%s: %v\n", message, err)
+// Error logs an error message
+func (l *Logger) Error(msg string, err error, args ...any) {
+	l.logger.Error(msg, append(args, "error", err)...)
 }

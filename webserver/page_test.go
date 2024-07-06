@@ -1,108 +1,162 @@
 package webserver
 
 import (
-	"bytes"
 	"html/template"
-	"jonesrussell/gocreate/logger"
 	"jonesrussell/gocreate/utils"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+const (
+	testTitle    = "Test Title"
+	testBody     = "Test Body"
+	testFilename = "../static/index.html"
+	mockHTML     = "<html><head><title>Mock Title</title></head><body>Mock Body</body></html>"
 )
 
 func TestPage_NewPage(t *testing.T) {
-	type args struct {
+	tests := []struct {
+		name     string
 		title    string
 		body     template.HTML
-		fr       utils.FileReader
-		updater  *WebsiteUpdater
 		filename string
-	}
-	tests := []struct {
-		name string
-		args args
-		want *Page
+		wantPage *Page
 	}{
 		{
-			name: "Test with valid title and body",
-			args: args{
-				title:    "Test Title",
-				body:     template.HTML("Test Body"),
-				fr:       utils.MockFileReader{},
-				updater:  NewWebsiteUpdater(logger.NewLogger("/tmp/gocreate-tests.log")),
-				filename: "../static/index.html",
+			name:     "Test with valid title and body",
+			title:    testTitle,
+			body:     template.HTML(testBody),
+			filename: testFilename,
+			wantPage: &Page{
+				Title:   testTitle,
+				Body:    testBody,
+				HTML:    []byte(mockHTML),
+				updater: NewWebsiteUpdater(logInstance),
 			},
-			want: &Page{
-				Title:   "Test Title",
-				Body:    "Test Body",
-				HTML:    []byte("<html><head><title>Mock Title</title></head><body>Mock Body</body></html>"), // this should match the content returned by MockFileReader.ReadFile
-				updater: NewWebsiteUpdater(logger.NewLogger("/tmp/gocreate-tests.log")),                      // assuming you have a constructor
+		},
+		{
+			name:     "Test with empty title",
+			title:    "",
+			body:     template.HTML(testBody),
+			filename: testFilename,
+			wantPage: &Page{
+				Title:   "",
+				Body:    testBody,
+				HTML:    []byte(mockHTML),
+				updater: NewWebsiteUpdater(logInstance),
+			},
+		},
+		{
+			name:     "Test with empty body",
+			title:    testTitle,
+			body:     template.HTML(""),
+			filename: testFilename,
+			wantPage: &Page{
+				Title:   testTitle,
+				Body:    "",
+				HTML:    []byte(mockHTML),
+				updater: NewWebsiteUpdater(logInstance),
+			},
+		},
+		{
+			name:     "Test with empty title and body",
+			title:    "",
+			body:     template.HTML(""),
+			filename: testFilename,
+			wantPage: &Page{
+				Title:   "",
+				Body:    "",
+				HTML:    []byte(mockHTML),
+				updater: NewWebsiteUpdater(logInstance),
+			},
+		},
+		{
+			name:     "Test with HTML in body",
+			title:    testTitle,
+			body:     template.HTML("<p>This is a <strong>test</strong> paragraph.</p>"),
+			filename: testFilename,
+			wantPage: &Page{
+				Title:   testTitle,
+				Body:    "<p>This is a <strong>test</strong> paragraph.</p>",
+				HTML:    []byte(mockHTML),
+				updater: NewWebsiteUpdater(logInstance),
+			},
+		},
+		{
+			name:     "Test with special characters in title",
+			title:    "Test & Title <with> Special \"Characters\"",
+			body:     template.HTML(testBody),
+			filename: testFilename,
+			wantPage: &Page{
+				Title:   "Test & Title <with> Special \"Characters\"",
+				Body:    testBody,
+				HTML:    []byte(mockHTML),
+				updater: NewWebsiteUpdater(logInstance),
+			},
+		},
+		{
+			name:     "Test with different filename",
+			title:    testTitle,
+			body:     template.HTML(testBody),
+			filename: "../static/different.html",
+			wantPage: &Page{
+				Title:   testTitle,
+				Body:    testBody,
+				HTML:    []byte(mockHTML), // Assuming MockFileReader always returns the same content
+				updater: NewWebsiteUpdater(logInstance),
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := NewPage(tt.args.title, tt.args.body, tt.args.fr, tt.args.updater, tt.args.filename)
-			if got.Title != tt.want.Title || got.Body != tt.want.Body || !bytes.Equal(got.HTML, tt.want.HTML) {
-				t.Errorf("NewPage() = %v, want %v", got, tt.want)
-			}
+			fr := utils.MockFileReader{}
+			updater := NewWebsiteUpdater(logInstance)
+			got := NewPage(tt.title, tt.body, fr, updater, tt.filename)
+
+			assert.Equal(t, tt.wantPage.Title, got.Title)
+			assert.Equal(t, tt.wantPage.Body, got.Body)
+			assert.Equal(t, tt.wantPage.HTML, got.HTML)
+			assert.Equal(t, tt.wantPage.updater, got.updater)
 		})
 	}
 }
 
 func TestPage_Render(t *testing.T) {
-	type fields struct {
-		Title   string
-		Body    string
-		HTML    []byte
-		updater *WebsiteUpdater
-	}
 	tests := []struct {
 		name    string
-		fields  fields
+		title   string
+		body    string
 		want    []byte
 		wantErr bool
 	}{
 		{
-			name: "Test with valid title and body",
-			fields: fields{
-				Title:   "Test Title",
-				Body:    "Test Body",
-				HTML:    []byte("<html><head><title>Mock Title</title></head><body>Mock Body</body></html>"), // this should match the content returned by MockFileReader.ReadFile
-				updater: NewWebsiteUpdater(logger.NewLogger("/tmp/gocreate-tests.log")),                      // assuming you have a constructor
-			},
+			name:    "Test with valid title and body",
+			title:   testTitle,
+			body:    testBody,
 			want:    []byte("<html><head><title>Test Title</title></head><body>Test Body</body></html>"),
 			wantErr: false,
 		},
 		{
-			name: "Test with empty title",
-			fields: fields{
-				Title:   "",
-				Body:    "Test Body",
-				HTML:    []byte("<html><head><title>Mock Title</title></head><body>Mock Body</body></html>"), // this should match the content returned by MockFileReader.ReadFile
-				updater: NewWebsiteUpdater(logger.NewLogger("/tmp/gocreate-tests.log")),                      // assuming you have a constructor
-			},
+			name:    "Test with empty title",
+			title:   "",
+			body:    testBody,
 			want:    []byte("<html><head><title></title></head><body>Test Body</body></html>"),
 			wantErr: false,
 		},
 		{
-			name: "Test with empty body",
-			fields: fields{
-				Title:   "Test Title",
-				Body:    "",
-				HTML:    []byte("<html><head><title>Mock Title</title></head><body>Mock Body</body></html>"), // this should match the content returned by MockFileReader.ReadFile
-				updater: NewWebsiteUpdater(logger.NewLogger("/tmp/gocreate-tests.log")),                      // assuming you have a constructor
-			},
+			name:    "Test with empty body",
+			title:   testTitle,
+			body:    "",
 			want:    []byte("<html><head><title>Test Title</title></head><body></body></html>"),
 			wantErr: false,
 		},
 		{
-			name: "Test with empty title and body",
-			fields: fields{
-				Title:   "",
-				Body:    "",
-				HTML:    []byte("<html><head><title>Mock Title</title></head><body>Mock Body</body></html>"), // this should match the content returned by MockFileReader.ReadFile
-				updater: NewWebsiteUpdater(logger.NewLogger("/tmp/gocreate-tests.log")),                      // assuming you have a constructor
-			},
+			name:    "Test with empty title and body",
+			title:   "",
+			body:    "",
 			want:    []byte("<html><head><title></title></head><body></body></html>"),
 			wantErr: false,
 		},
@@ -110,58 +164,56 @@ func TestPage_Render(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &Page{
-				Title:   tt.fields.Title,
-				Body:    template.HTML(tt.fields.Body),
-				HTML:    tt.fields.HTML,
-				updater: tt.fields.updater,
+				Title:   tt.title,
+				Body:    template.HTML(tt.body),
+				HTML:    []byte(mockHTML),
+				updater: NewWebsiteUpdater(logInstance),
 			}
 			got, err := p.Render()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Page.Render() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !bytes.Equal(got, tt.want) {
-				t.Errorf("Page.Render() = %v, want %v", got, tt.want)
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tt.want, got)
 			}
 		})
 	}
 }
 
 func TestPage_GetHTML(t *testing.T) {
-	type fields struct {
-		Title   string
-		Body    string
-		HTML    []byte
-		updater *WebsiteUpdater
-	}
 	tests := []struct {
-		name   string
-		fields fields
-		want   string
+		name  string
+		title string
+		body  string
+		html  []byte
+		want  string
 	}{
 		{
-			name: "Test with valid title and body",
-			fields: fields{
-				Title:   "Test Title",
-				Body:    "Test Body",
-				HTML:    []byte("<html><head><title>Mock Title</title></head><body>Mock Body</body></html>"), // this should match the content returned by MockFileReader.ReadFile
-				updater: NewWebsiteUpdater(logger.NewLogger("/tmp/gocreate-tests.log")),                      // assuming you have a constructor
-			},
-			want: "<html><head><title>Test Title</title></head><body>Test Body</body></html>",
+			name:  "Test with valid title and body",
+			title: testTitle,
+			body:  testBody,
+			html:  []byte(mockHTML),
+			want:  "<html><head><title>Test Title</title></head><body>Test Body</body></html>",
+		},
+		{
+			name:  "Test with empty title and body",
+			title: "",
+			body:  "",
+			html:  []byte("<html><head><title></title></head><body></body></html>"),
+			want:  "<html><head><title></title></head><body></body></html>",
 		},
 		// Add more test cases as needed.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &Page{
-				Title:   tt.fields.Title,
-				Body:    template.HTML(tt.fields.Body),
-				HTML:    tt.fields.HTML,
-				updater: tt.fields.updater,
+				Title:   tt.title,
+				Body:    template.HTML(tt.body),
+				HTML:    tt.html,
+				updater: NewWebsiteUpdater(logInstance),
 			}
-			if got := p.GetHTML(); got != tt.want {
-				t.Errorf("Page.GetHTML() = %v, want %v", got, tt.want)
-			}
+			got := p.GetHTML()
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

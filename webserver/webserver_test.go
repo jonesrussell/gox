@@ -9,9 +9,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// initLogger creates a new logger and handles any potential errors
+func initLogger() logger.LoggerInterface {
+	log, err := logger.NewLogger("/tmp/gocreate-tests.log")
+	if err != nil {
+		panic("Failed to initialize logger: " + err.Error())
+	}
+	return log
+}
+
 // Create a new Logger and WebsiteUpdater once for all tests
 var (
-	logInstance = logger.NewLogger("/tmp/gocreate-tests.log")
+	logInstance = initLogger()
 )
 
 func TestNewServer(t *testing.T) {
