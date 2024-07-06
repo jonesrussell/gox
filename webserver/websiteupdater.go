@@ -38,33 +38,37 @@ func (w *WebsiteUpdater) ChangeTitle(n *html.Node, newTitle string) {
 	}
 }
 
-func (w *WebsiteUpdater) ChangeBody(n *html.Node, newBody string) {
-	if n.Type == html.ElementNode && n.Data == "body" {
-		// Clear existing children
-		for c := n.FirstChild; c != nil; {
-			next := c.NextSibling
-			n.RemoveChild(c)
-			c = next
+func (wu *WebsiteUpdater) ChangeBody(doc *html.Node, newBody string) {
+	var body *html.Node
+	var findBody func(*html.Node)
+	findBody = func(n *html.Node) {
+		if n.Type == html.ElementNode && n.Data == "body" {
+			body = n
+			return
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			findBody(c)
+		}
+	}
+	findBody(doc)
+
+	if body != nil {
+		// Clear existing body content
+		for body.FirstChild != nil {
+			body.RemoveChild(body.FirstChild)
 		}
 
 		// Parse the new body content
-		newBodyDoc, err := html.Parse(strings.NewReader(newBody))
+		nodes, err := html.ParseFragment(strings.NewReader(newBody), body)
 		if err != nil {
-			w.logger.Error("Error parsing new body content: ", err)
+			wu.logger.Error("Failed to parse new body content", err)
 			return
 		}
 
-		// Append the children of the body of the new content
-		for c := newBodyDoc.FirstChild.LastChild.FirstChild; c != nil; c = c.NextSibling {
-			n.AppendChild(c)
+		// Append new nodes to the body
+		for _, n := range nodes {
+			body.AppendChild(n)
 		}
-
-		return
-	}
-
-	// Recursively search through children
-	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		w.ChangeBody(c, newBody)
 	}
 }
 
