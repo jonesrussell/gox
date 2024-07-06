@@ -7,6 +7,7 @@ import (
 
 	"jonesrussell/gocreate/logger"
 
+	"github.com/tmaxmax/go-sse"
 	"golang.org/x/net/html"
 )
 
@@ -17,12 +18,14 @@ type PageUpdaterInterface interface {
 }
 
 type PageUpdater struct {
-	logger logger.LoggerInterface
+	logger    logger.LoggerInterface
+	sseServer *sse.Server
 }
 
 func NewPageUpdater(logger logger.LoggerInterface) *PageUpdater {
 	return &PageUpdater{
-		logger: logger,
+		logger:    logger,
+		sseServer: &sse.Server{},
 	}
 }
 
@@ -77,31 +80,66 @@ func (p *PageUpdater) UpdatePage(title, body, templatePath string) (string, erro
 	p.logger.Debug("UpdatePage called with title: " + title + " and body: " + body)
 
 	// Read the template file
-	content, err := os.ReadFile(templatePath)
+	content, err := p.readTemplateFile(templatePath)
 	if err != nil {
-		p.logger.Error("Error reading template file: ", err)
 		return "", err
 	}
 
 	// Parse the HTML
-	doc, err := html.Parse(bytes.NewReader(content))
+	doc, err := p.parseHTML(content)
 	if err != nil {
-		p.logger.Error("Error parsing HTML: ", err)
 		return "", err
 	}
 
 	// Update the title and body
-	p.ChangeTitle(doc, title)
-	p.ChangeBody(doc, body)
+	p.updateTitleAndBody(doc, title, body)
 
 	// Render the updated HTML
+	htmlString, err := p.renderHTML(doc)
+	if err != nil {
+		return "", err
+	}
+
+	// Publish an update event
+	p.publishUpdateEvent(htmlString)
+
+	p.logger.Debug("Page updated successfully")
+	return htmlString, nil
+}
+
+func (p *PageUpdater) readTemplateFile(templatePath string) ([]byte, error) {
+	content, err := os.ReadFile(templatePath)
+	if err != nil {
+		p.logger.Error("Error reading template file: ", err)
+	}
+	return content, err
+}
+
+func (p *PageUpdater) parseHTML(content []byte) (*html.Node, error) {
+	doc, err := html.Parse(bytes.NewReader(content))
+	if err != nil {
+		p.logger.Error("Error parsing HTML: ", err)
+	}
+	return doc, err
+}
+
+func (p *PageUpdater) updateTitleAndBody(doc *html.Node, title, body string) {
+	p.ChangeTitle(doc, title)
+	p.ChangeBody(doc, body)
+}
+
+func (p *PageUpdater) renderHTML(doc *html.Node) (string, error) {
 	var buf bytes.Buffer
-	err = html.Render(&buf, doc)
+	err := html.Render(&buf, doc)
 	if err != nil {
 		p.logger.Error("Error rendering HTML: ", err)
 		return "", err
 	}
-
-	p.logger.Debug("Page updated successfully")
 	return buf.String(), nil
+}
+
+func (p *PageUpdater) publishUpdateEvent(htmlString string) {
+	e := &sse.Message{}
+	e.AppendData(htmlString)
+	p.sseServer.Publish(e)
 }

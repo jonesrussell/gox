@@ -1,9 +1,22 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Welcome to My Website</title>
+    <script>
+        // Create a new EventSource that connects to the /updates endpoint
+        const evtSource = new EventSource("/updates");
+
+        // Set up an event listener for the message event
+        evtSource.onmessage = function (event) {
+            // Log the event data to the console
+            console.log(event.data);
+        };
+    </script>
 </head>
+
 <body>
     <h1>Hello, world!</h1>
 </body>
+
 </html>

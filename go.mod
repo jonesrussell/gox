@@ -9,6 +9,7 @@ require (
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.9.0
+	github.com/tmaxmax/go-sse v0.9.0-pre.2
 	golang.org/x/net v0.27.0
 )
 

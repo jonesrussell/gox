@@ -7,6 +7,8 @@ import (
 	"net"
 	"net/http"
 	"sync"
+
+	"github.com/tmaxmax/go-sse"
 )
 
 // Define the WebServerInterface interface
@@ -23,11 +25,12 @@ type WebServerInterface interface {
 
 // webServer is the actual implementation of the Server interface
 type webServer struct {
-	logger logger.LoggerInterface
-	mux    *http.ServeMux
-	srv    *http.Server
-	wg     sync.WaitGroup
-	page   *Page
+	logger    logger.LoggerInterface
+	mux       *http.ServeMux
+	srv       *http.Server
+	wg        sync.WaitGroup
+	page      *Page
+	sseServer *sse.Server
 }
 
 // NewServer returns a new Server
@@ -37,16 +40,17 @@ func NewServer(logger logger.LoggerInterface) WebServerInterface {
 	// Create a new WebsiteUpdater
 	updater := NewPageUpdater(logger)
 
-	// Explicitly use the FileReader interface when creating a new Page instance
 	body := "<h1>My Heading</h1>"
-	// page := NewPage("My Title", template.HTML(body), utils.OSFileReader{}, updater, "static/index.html") // utils.OSFileReader{} is of type utils.FileReader
+
+	// Explicitly use the FileReader interface when creating a new Page instance
 	page := NewPage("My Title", template.HTML(body), utils.OSFileReader{}, updater, "static/index.html", logger)
 
 	return &webServer{
-		logger: logger,
-		mux:    http.NewServeMux(),
-		srv:    &http.Server{Addr: ":3000"},
-		page:   page,
+		logger:    logger,
+		mux:       http.NewServeMux(),
+		srv:       &http.Server{Addr: ":3000"},
+		page:      page,
+		sseServer: &sse.Server{}, // Initialize the SSE server here
 	}
 }
 
@@ -68,6 +72,11 @@ func (s *webServer) Start() error {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			s.logger.Error("Error handling request: ", err)
 		}
+	})
+
+	s.mux.HandleFunc("/updates", func(w http.ResponseWriter, r *http.Request) {
+		// Use the sseServer to handle the SSE
+		s.sseServer.ServeHTTP(w, r)
 	})
 
 	s.srv.Handler = s.mux
