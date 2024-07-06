@@ -19,10 +19,10 @@ type MockMenu struct {
 var _ MenuInterface = &MockMenu{}
 
 // NewMockMenu creates a new instance of MockMenu.
-func NewMockMenu(server *webserver.WebServerInterface) MenuInterface {
+func NewMockMenu(server webserver.WebServerInterface) MenuInterface {
 	return &MockMenu{
 		reader: bufio.NewReader(nil), // Control the input
-		server: server,
+		server: &server,
 	}
 }
 

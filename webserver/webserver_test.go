@@ -1,6 +1,7 @@
 package webserver
 
 import (
+	"html/template"
 	"jonesrussell/gocreate/logger"
 	"net/http"
 	"sync"
@@ -25,11 +26,46 @@ var (
 
 func TestNewServer(t *testing.T) {
 	// Create a new mock server
-	server := NewMockServer(&Page{})
+	server := NewMockServer(nil)
 
 	// Assert that the server was created
 	assert.NotNil(t, server)
+
+	// Test specific methods
+	assert.NotNil(t, server.Logger())
+	assert.Equal(t, "http://127.0.0.1:3000", server.GetURL())
+
+	// Test that the server has a non-nil page
+	assert.NotNil(t, server.(*MockServer).page)
+
+	// Test default values
+	assert.Equal(t, "Mock Title", server.(*MockServer).page.Title)
+	assert.Equal(t, template.HTML("<h1>Mock Body</h1>"), server.(*MockServer).page.Body)
 }
+
+func TestMockServer_StartStop(t *testing.T) {
+	server := NewMockServer(nil)
+
+	// Test Start
+	err := server.Start()
+	assert.NoError(t, err)
+
+	// Test Stop
+	err = server.Stop()
+	assert.NoError(t, err)
+}
+
+// func TestMockServer_UpdateTitleAndBody(t *testing.T) {
+// 	server := NewMockServer(nil)
+
+// 	// Test UpdateTitle
+// 	server.UpdateTitle("New Title")
+// 	assert.Contains(t, server.GetHTML(), "New Title")
+
+// 	// Test UpdateBody
+// 	server.UpdateBody("<p>New Body</p>")
+// 	assert.Contains(t, server.GetHTML(), "<p>New Body</p>")
+// }
 
 func Test_webServer_GetURL(t *testing.T) {
 	tests := []struct {
@@ -72,4 +108,9 @@ func Test_webServer_GetURL(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestMockServer_Logger(t *testing.T) {
+	server := NewMockServer(nil)
+	assert.NotNil(t, server.Logger())
 }

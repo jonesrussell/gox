@@ -3,6 +3,7 @@ package webserver
 import (
 	"html/template"
 	"jonesrussell/gocreate/logger"
+	"jonesrussell/gocreate/utils"
 	"log"
 	"net/http"
 	"sync"
@@ -15,17 +16,29 @@ type MockServer struct {
 	log  logger.LoggerInterface
 }
 
-var _ WebServerInterface = &MockServer{} // If Logger() method is needed, implement it in MockServer
+var _ WebServerInterface = (*MockServer)(nil)
 
 func NewMockServer(page *Page) WebServerInterface {
+	if page == nil {
+		page = NewPage(
+			"Mock Title",
+			template.HTML("<h1>Mock Body</h1>"),
+			utils.OSFileReader{},
+			NewWebsiteUpdater(nil), "../static/index.html",
+		)
+	}
+
+	var err error
+	wslog, err := logger.NewLogger("/tmp/gocreate-test.go")
+	if err != nil {
+		log.Fatalf("Error initializing logger: %v", err)
+	}
+
 	return &MockServer{
 		srv:  &http.Server{Addr: ":3000"},
 		page: page,
+		log:  wslog,
 	}
-}
-
-func (ms *MockServer) Logger() logger.LoggerInterface {
-	return ms.log
 }
 
 func (ms *MockServer) Start() error {
@@ -56,6 +69,10 @@ func (ms *MockServer) GetHTML() string {
 	return string(ms.page.HTML)
 }
 
+func (ms *MockServer) Logger() logger.LoggerInterface {
+	return ms.log
+}
+
 func (ms *MockServer) GetURL() string {
-	return ms.srv.Addr
+	return "http://127.0.0.1:3000"
 }

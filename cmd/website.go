@@ -28,7 +28,7 @@ func NewWebsiteCommand(
 	}
 }
 
-func (w *WebsiteCommand) handleDebugFlag(flagset *pflag.FlagSet) bool {
+func (w *WebsiteCommand) HandleDebugFlag(flagset *pflag.FlagSet) bool {
 	debug, err := flagset.GetBool("debug")
 	if err != nil {
 		log.Println("Can't get debug flag, defaulting to false")
@@ -38,7 +38,7 @@ func (w *WebsiteCommand) handleDebugFlag(flagset *pflag.FlagSet) bool {
 	return debug
 }
 
-func (w *WebsiteCommand) startServer() error {
+func (w *WebsiteCommand) StartServer() error {
 	err := w.server.Start()
 	if err != nil {
 		w.server.Logger().Debug("Error starting server")
@@ -49,12 +49,12 @@ func (w *WebsiteCommand) startServer() error {
 	return nil
 }
 
-func (w *WebsiteCommand) configureAddressView(addressView *tview.TextView) {
+func (w *WebsiteCommand) ConfigureAddressView(addressView *tview.TextView) {
 	// Add a border and title to the addressView
 	addressView.SetBorder(true).SetTitle("Webserver")
 }
 
-func (w *WebsiteCommand) createThirdColumn(
+func (w *WebsiteCommand) CreateThirdColumn(
 	htmlView *tview.TextView,
 	addressView *tview.TextView,
 ) *tview.Flex {
@@ -67,15 +67,15 @@ func (w *WebsiteCommand) createThirdColumn(
 		AddItem(htmlView, 0, 6, false)
 }
 
-func (w *WebsiteCommand) createFlexLayout(
+func (w *WebsiteCommand) CreateFlexLayout(
 	server webserver.WebServerInterface,
 	uiApp *tview.Application,
 	menuPages *tview.Pages,
 	htmlView *tview.TextView,
 	addressView *tview.TextView,
 ) *tview.Flex {
-	w.configureAddressView(addressView)
-	thirdColumn := w.createThirdColumn(htmlView, addressView)
+	w.ConfigureAddressView(addressView)
+	thirdColumn := w.CreateThirdColumn(htmlView, addressView)
 
 	// Use the Menu struct's CreateMenu() method to create and populate the menu
 	menu := ui.NewMenu(server, uiApp, menuPages)
@@ -105,13 +105,13 @@ func (w *WebsiteCommand) Command() *cobra.Command {
 			particularly useful for beginner developers who need to
 			quickly	set up a static website.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			debug := w.handleDebugFlag(cmd.Flags())
+			debug := w.HandleDebugFlag(cmd.Flags())
 
 			if debug {
 				log.Println("Debugging")
 			}
 
-			if err := w.startServer(); err != nil {
+			if err := w.StartServer(); err != nil {
 				return
 			}
 
@@ -120,7 +120,7 @@ func (w *WebsiteCommand) Command() *cobra.Command {
 			// Create a TextView for the server address
 			addressView := tview.NewTextView().SetText(w.server.GetURL())
 
-			layout := w.createFlexLayout(
+			layout := w.CreateFlexLayout(
 				w.server,
 				w.ui.GetApp(),
 				w.ui.GetPages(),
