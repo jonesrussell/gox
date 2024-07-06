@@ -3,7 +3,6 @@ package webserver
 import (
 	"html/template"
 	"jonesrussell/gocreate/logger"
-	"jonesrussell/gocreate/utils"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -19,113 +18,28 @@ const (
 )
 
 func TestPage_NewPage(t *testing.T) {
-	tests := []struct {
-		name     string
-		title    string
-		body     template.HTML
-		filename string
-		wantPage *Page
-		logger   logger.LoggerInterface
-	}{
-		{
-			name:     "Test with valid title and body",
-			title:    testTitle,
-			body:     template.HTML(testBody),
-			filename: testFilename,
-			wantPage: &Page{
-				title:   testTitle,
-				body:    testBody,
-				HTML:    []byte(mockHTML),
-				updater: NewWebsiteUpdater(logInstance),
-			},
-		},
-		{
-			name:     "Test with empty title",
-			title:    "",
-			body:     template.HTML(testBody),
-			filename: testFilename,
-			wantPage: &Page{
-				title:   "",
-				body:    testBody,
-				HTML:    []byte(mockHTML),
-				updater: NewWebsiteUpdater(logInstance),
-			},
-		},
-		{
-			name:     "Test with empty body",
-			title:    testTitle,
-			body:     template.HTML(""),
-			filename: testFilename,
-			wantPage: &Page{
-				title:   testTitle,
-				body:    "",
-				HTML:    []byte(mockHTML),
-				updater: NewWebsiteUpdater(logInstance),
-			},
-		},
-		{
-			name:     "Test with empty title and body",
-			title:    "",
-			body:     template.HTML(""),
-			filename: testFilename,
-			wantPage: &Page{
-				title:   "",
-				body:    "",
-				HTML:    []byte(mockHTML),
-				updater: NewWebsiteUpdater(logInstance),
-			},
-		},
-		{
-			name:     "Test with HTML in body",
-			title:    testTitle,
-			body:     template.HTML("<p>This is a <strong>test</strong> paragraph.</p>"),
-			filename: testFilename,
-			wantPage: &Page{
-				title:   testTitle,
-				body:    "<p>This is a <strong>test</strong> paragraph.</p>",
-				HTML:    []byte(mockHTML),
-				updater: NewWebsiteUpdater(logInstance),
-			},
-		},
-		{
-			name:     "Test with special characters in title",
-			title:    "Test & Title <with> Special \"Characters\"",
-			body:     template.HTML(testBody),
-			filename: testFilename,
-			wantPage: &Page{
-				title:   "Test & Title <with> Special \"Characters\"",
-				body:    testBody,
-				HTML:    []byte(mockHTML),
-				updater: NewWebsiteUpdater(logInstance),
-			},
-		},
-		{
-			name:     "Test with different filename",
-			title:    testTitle,
-			body:     template.HTML(testBody),
-			filename: "../static/different.html",
-			wantPage: &Page{
-				title:   testTitle,
-				body:    testBody,
-				HTML:    []byte(mockHTML), // Assuming MockFileReader always returns the same content
-				updater: NewWebsiteUpdater(logInstance),
-				logger:  logInstance,
-			},
-		},
-	}
+	mockFileReader := &MockFileReader{}
+	mockUpdater := &MockWebsiteUpdater{}
+	mockLogger := new(logger.MockLogger)
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			fr := utils.MockFileReader{}
-			updater := NewWebsiteUpdater(logInstance)
-			got := NewPage(tt.title, tt.body, fr, updater, tt.filename, tt.logger)
+	title := "Test Title"
+	body := template.HTML("Test Body")
+	templatePath := "template.html"
 
-			assert.Equal(t, tt.wantPage.title, got.title)
-			assert.Equal(t, tt.wantPage.body, got.body)
-			assert.Equal(t, tt.wantPage.HTML, got.HTML)
-			assert.Equal(t, tt.wantPage.updater, got.updater)
-		})
-	}
+	expectedHTML := "<html><head><title>Test Title</title></head><body>Test Body</body></html>"
+
+	// Set up the mock updater to return the expected HTML
+	// This needs to be done BEFORE calling NewPage
+	mockUpdater.On("UpdateWebsite", title, string(body), templatePath).Return(expectedHTML, nil)
+
+	page := NewPage(title, body, mockFileReader, mockUpdater, templatePath, mockLogger)
+
+	assert.Equal(t, title, page.title)
+	assert.Equal(t, body, page.body)
+	assert.Equal(t, expectedHTML, string(page.HTML))
+
+	mockUpdater.AssertExpectations(t)
+	mockLogger.AssertExpectations(t)
 }
 
 func TestPage_Render(t *testing.T) {

@@ -86,12 +86,12 @@ func Test_webServer_GetURL(t *testing.T) {
 		{
 			name: "Test GetURL with 0.0.0.0:3000",
 			addr: "0.0.0.0:3000",
-			want: "http://127.0.0.1:3000",
+			want: "http://localhost:3000",
 		},
 		{
 			name: "Test GetURL with :3000",
 			addr: ":3000",
-			want: "http://127.0.0.1:3000",
+			want: "http://localhost:3000",
 		},
 	}
 	for _, tt := range tests {

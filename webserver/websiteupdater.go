@@ -11,6 +11,7 @@ import (
 
 type WebsiteUpdaterInterface interface {
 	ChangeTitle(doc *html.Node, title string)
+	// TODO ChangeBody(doc *html.Node, body *html.Node)
 	ChangeBody(doc *html.Node, body string)
 	UpdateWebsite(title string, body string, templatePath string) (string, error)
 }
