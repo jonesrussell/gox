@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"html/template"
 	"jonesrussell/gocreate/logger"
-	"jonesrussell/gocreate/utils"
 
 	"golang.org/x/net/html"
 )
@@ -13,7 +12,6 @@ type Page struct {
 	title        string
 	body         template.HTML
 	HTML         []byte
-	fileReader   utils.FileReaderInterface
 	updater      PageUpdaterInterface
 	templatePath string
 	updateChan   chan struct{}
@@ -23,7 +21,6 @@ type Page struct {
 func NewPage(
 	title string,
 	body template.HTML,
-	fileReader utils.FileReaderInterface,
 	updater PageUpdaterInterface,
 	templatePath string,
 	logger logger.LoggerInterface,
@@ -31,7 +28,6 @@ func NewPage(
 	page := &Page{
 		title:        title,
 		body:         body,
-		fileReader:   fileReader,
 		updater:      updater,
 		templatePath: templatePath,
 		updateChan:   make(chan struct{}, 1),

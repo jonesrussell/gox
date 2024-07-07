@@ -18,7 +18,6 @@ const (
 )
 
 func TestPage_NewPage(t *testing.T) {
-	mockFileReader := &MockFileReader{}
 	mockUpdater := &MockPageUpdater{}
 	mockLogger := new(logger.MockLogger)
 
@@ -32,7 +31,7 @@ func TestPage_NewPage(t *testing.T) {
 	// This needs to be done BEFORE calling NewPage
 	mockUpdater.On("UpdatePage", title, string(body), templatePath).Return(expectedHTML, nil)
 
-	page := NewPage(title, body, mockFileReader, mockUpdater, templatePath, mockLogger)
+	page := NewPage(title, body, mockUpdater, templatePath, mockLogger)
 
 	assert.Equal(t, title, page.title)
 	assert.Equal(t, body, page.body)
@@ -117,7 +116,6 @@ func TestPage_GetHTML(t *testing.T) {
 		page := NewPage(
 			"Test Title",
 			template.HTML("<p>Test Body</p>"),
-			mockFileReader,
 			mockUpdater,
 			"test_template.html",
 			mockLogger,

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"html/template"
 	"jonesrussell/gocreate/logger"
-	"jonesrussell/gocreate/utils"
 	"net/http"
 	"sync"
 
@@ -43,7 +42,7 @@ func NewServer(logger logger.LoggerInterface) WebServerInterface {
 	body := "<h1>My Heading</h1>"
 
 	// Explicitly use the FileReader interface when creating a new Page instance
-	page := NewPage("My Title", template.HTML(body), utils.OSFileReader{}, updater, "static/index.html", logger)
+	page := NewPage("My Title", template.HTML(body), updater, "static/index.html", logger)
 
 	s := &webServer{
 		logger:    logger,

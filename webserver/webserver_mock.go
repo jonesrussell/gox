@@ -3,7 +3,6 @@ package webserver
 import (
 	"html/template"
 	"jonesrussell/gocreate/logger"
-	"jonesrussell/gocreate/utils"
 	"log"
 	"net/http"
 	"sync"
@@ -30,7 +29,6 @@ func NewMockServer(page *Page) WebServerInterface {
 		page = NewPage(
 			"Mock Title",
 			template.HTML("<h1>Mock Body</h1>"),
-			utils.OSFileReader{},
 			NewPageUpdater(wslog),
 			"../static/index.html",
 			wslog,
