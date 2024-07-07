@@ -49,6 +49,7 @@ func NewPage(
 func (p *Page) Render() ([]byte, error) {
 	doc, err := html.Parse(bytes.NewReader(p.HTML))
 	if err != nil {
+		p.logger.Error("Error parsing HTML: ", err)
 		return nil, err
 	}
 
@@ -59,6 +60,7 @@ func (p *Page) Render() ([]byte, error) {
 	var buf bytes.Buffer
 	err = html.Render(&buf, doc)
 	if err != nil {
+		p.logger.Error("Error rendering updated HTML: ", err)
 		return nil, err
 	}
 

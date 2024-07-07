@@ -98,6 +98,7 @@ func (s *webServer) Stop() error {
 	if s.srv != nil {
 		err := s.srv.Close()
 		if err != nil {
+			s.logger.Error("Error stopping server: ", err)
 			return err
 		}
 		s.wg.Wait() // Wait for the server to shutdown

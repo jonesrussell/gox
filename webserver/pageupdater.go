@@ -79,12 +79,14 @@ func (p *PageUpdater) UpdatePage(title, body, templatePath string) (string, erro
 	// Read the template file
 	content, err := p.readTemplateFile(templatePath)
 	if err != nil {
+		p.logger.Error("Error reading template file: ", err)
 		return "", err
 	}
 
 	// Parse the HTML
 	doc, err := p.parseHTML(content)
 	if err != nil {
+		p.logger.Error("Error parsing HTML: ", err)
 		return "", err
 	}
 
@@ -94,6 +96,7 @@ func (p *PageUpdater) UpdatePage(title, body, templatePath string) (string, erro
 	// Render the updated HTML
 	htmlString, err := p.renderHTML(doc)
 	if err != nil {
+		p.logger.Error("Error rendering updated HTML: ", err)
 		return "", err
 	}
 

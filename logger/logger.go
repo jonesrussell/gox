@@ -2,6 +2,7 @@ package logger
 
 import (
 	"context"
+	"log"
 	"log/slog"
 	"os"
 
@@ -27,6 +28,7 @@ var _ LoggerInterface = &Logger{}
 func NewLogger(logFilePath string) (LoggerInterface, error) {
 	file, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
+		log.Printf("Error opening log file: %v", err)
 		return nil, err
 	}
 
