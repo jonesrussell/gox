@@ -54,7 +54,10 @@ func TestWebsiteCommand_HandleDebugFlag(t *testing.T) {
 	assert.False(t, debug)
 
 	// Test when debug flag is set
-	flagSet.Set("debug", "true")
+	if err := flagSet.Set("debug", "true"); err != nil {
+		t.Fatalf("Failed to set flag: %v", err)
+	}
+
 	debug = websiteCmd.HandleDebugFlag(flagSet)
 	assert.True(t, debug)
 }
