@@ -31,8 +31,5 @@ func main() {
 
 	rootCmd := cmd.NewRootCmd(server, menuInstance, uiInstance)
 
-	err = rootCmd.Execute()
-	if err != nil {
-		log.Fatalf("Error executing command: %v", err)
-	}
+	rootCmd.Execute()
 }
