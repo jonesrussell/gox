@@ -41,7 +41,11 @@ func NewRootCmd(
 	ui ui.UIInterface,
 ) *cobra.Command {
 	websiteCommand := NewWebsiteCommand(server, menu, ui)
+	symexCommand := NewSymexCommand() // Assuming you have a similar constructor for SymexCommand
+
 	rootCmd.AddCommand(websiteCommand.Command())
+	rootCmd.AddCommand(symexCommand.Command())
+
 	return rootCmd
 }
 
