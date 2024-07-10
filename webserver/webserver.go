@@ -2,7 +2,6 @@ package webserver
 
 import (
 	"fmt"
-	"html/template"
 	"jonesrussell/gocreate/htmlservice"
 	"jonesrussell/gocreate/logger"
 	"net/http"
@@ -40,13 +39,11 @@ func NewWebServer(logger logger.LoggerInterface) WebServerInterface {
 	// Create a new WebsiteUpdater
 	updater := NewPageUpdater(logger)
 
-	body := "<h1>My Heading</h1>"
-
 	// Create a new HTMLService
 	htmlService := htmlservice.NewHTMLService()
 
 	// Explicitly use the FileReader interface when creating a new Page instance
-	page, err := NewPage("", template.HTML(body), updater, "static/index.html", logger, htmlService)
+	page, err := NewPage("", "", updater, "static/index.html", logger, htmlService)
 	if err != nil {
 		logger.Error("Error creating page: ", err)
 		return nil
