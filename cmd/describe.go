@@ -14,30 +14,21 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 )
 
 type DescribeCommand struct {
 	Path         string
 	IncludeTests bool
 	IncludeMocks bool
+	Config       *Config
 }
 
-func NewDescribeCommand() *DescribeCommand {
-	cmd := &DescribeCommand{}
-
-	return cmd
-}
-
-// TODO: remove
-func (d *DescribeCommand) HandleDebugFlag(flagset *pflag.FlagSet) bool {
-	debug, err := flagset.GetBool("debug")
-	if err != nil {
-		log.Println("Can't get debug flag, defaulting to false")
-		debug = false
+func NewDescribeCommand(cfg *Config) *DescribeCommand {
+	cmd := &DescribeCommand{
+		Config: cfg,
 	}
 
-	return debug
+	return cmd
 }
 
 func (d *DescribeCommand) processDirectory(path string, includeTests bool, includeMocks bool) {
@@ -96,10 +87,8 @@ func (d *DescribeCommand) Command() *cobra.Command {
 		Long:  `This command describes a Go file and prints out its details.`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			debug := d.HandleDebugFlag(cmd.Flags())
-
-			if debug {
-				log.Println("Debugging")
+			if d.Config.Debug {
+				log.Println("describe: Debugging")
 			}
 
 			d.Path = args[0]

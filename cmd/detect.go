@@ -9,28 +9,19 @@ import (
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 	"golang.org/x/mod/modfile"
 )
 
 type DetectCommand struct {
 	showAllDeps bool
+	Config      *Config
 }
 
-func NewDetectCommand() *DetectCommand {
-	cmd := &DetectCommand{}
-	return cmd
-}
-
-// TODO: remove
-func (d *DetectCommand) HandleDebugFlag(flagset *pflag.FlagSet) bool {
-	debug, err := flagset.GetBool("debug")
-	if err != nil {
-		log.Println("Can't get debug flag, defaulting to false")
-		debug = false
+func NewDetectCommand(cfg *Config) *DetectCommand {
+	cmd := &DetectCommand{
+		Config: cfg,
 	}
-
-	return debug
+	return cmd
 }
 
 func (d *DetectCommand) Command() *cobra.Command {
@@ -39,10 +30,8 @@ func (d *DetectCommand) Command() *cobra.Command {
 		Short: "Detect if a file or directory is part of a Go project and report basic info",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			debug := d.HandleDebugFlag(cmd.Flags())
-
-			if debug {
-				log.Println("Debugging")
+			if d.Config.Debug {
+				log.Println("detect: Debugging")
 			}
 
 			path := args[0]

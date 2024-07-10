@@ -9,7 +9,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var Debug bool // Global variable for debug mode
+type Config struct {
+	Debug bool
+}
+
+func NewConfig() *Config {
+	return &Config{}
+}
 
 // ExecuteCommandC is a helper function that will execute the Cobra command
 // and return the command, output, and any errors that occurred.
@@ -28,8 +34,6 @@ func ExecuteCommand(root *cobra.Command, args ...string) (output string, err err
 	return output, err
 }
 
-// In your root.go file, update the NewRootCmd function to include the website command
-
 var rootCmd = &cobra.Command{
 	Use:   "gocreate",
 	Short: "Create webs things!",
@@ -40,9 +44,13 @@ func NewRootCmd(
 	menu ui.MenuInterface,
 	ui ui.UIInterface,
 ) *cobra.Command {
+	cfg := NewConfig()
+
+	rootCmd.PersistentFlags().BoolVarP(&cfg.Debug, "debug", "d", false, "Enable debug mode")
+
 	websiteCommand := NewWebsiteCommand(server, menu, ui)
-	describeCommand := NewDescribeCommand()
-	detectCommand := NewDetectCommand()
+	describeCommand := NewDescribeCommand(cfg)
+	detectCommand := NewDetectCommand(cfg)
 
 	rootCmd.AddCommand(websiteCommand.Command())
 	rootCmd.AddCommand(describeCommand.Command())
@@ -61,11 +69,5 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().BoolVarP(&Debug, "debug", "d", false, "Enable debug mode")
-
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.gocreate.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
