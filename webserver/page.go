@@ -166,7 +166,7 @@ func (p *Page) GetHTML() string {
 			return ""
 		}
 		p.Template.HTML = []byte(docHTML)
-		p.Logger.Debug("New HTML generated and cached successfully")
+		p.Logger.Debug("New HTML generated and cached successfully: " + string(p.Template.HTML))
 	} else {
 		p.Logger.Debug("Returning cached HTML")
 	}

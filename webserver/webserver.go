@@ -115,7 +115,7 @@ func (s *webServer) Stop() error {
 }
 
 func (s *webServer) UpdateTitle(content string) {
-	s.logger.Debug("UpdateTitle called with content: " + content)
+	s.logger.Debug("UpdateTitle called with content: '" + content + "'")
 	s.page.Template.SetTitle(content)
 	s.ssePublishUpdate(content, s.page.Template.GetBody()) // pass the title and body to the function
 	s.logger.Debug("Title updated, sending update signal")
