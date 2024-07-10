@@ -12,7 +12,7 @@ import (
 )
 
 type MenuInterface interface {
-	CreateMenu() *tview.List
+	CreateMenu() *tview.TreeView
 	handleChangeTitle()
 	handleChangeBody()
 	handleExit()
@@ -46,19 +46,45 @@ func NewMenu(
 	}
 }
 
-func (m *Menu) CreateMenu() *tview.List {
-	list := tview.NewList()
-	list.AddItem("Change title", "Press to change the title", '1', func() {
-		m.handleChangeTitle()
-	}).
-		AddItem("Update body", "Press to update the body", '2', func() {
-			m.handleChangeBody()
-		}).
-		AddItem("Exit", "Press to exit", '3', func() {
-			m.handleExit()
-		})
+func (m *Menu) CreateMenu() *tview.TreeView {
+	root := tview.NewTreeNode("Menu")
 
-	return list
+	tutorials := tview.NewTreeNode("Tutorials")
+	introductionToHTML := tview.NewTreeNode("Introduction to HTML")
+	tutorials.AddChild(introductionToHTML)
+
+	changeTitle := tview.NewTreeNode("Change title")
+	changeBody := tview.NewTreeNode("Change body")
+
+	exit := tview.NewTreeNode("Exit")
+
+	root.AddChild(tutorials)
+	root.AddChild(exit)
+
+	tree := tview.NewTreeView().SetRoot(root).SetCurrentNode(root)
+
+	var lastNode *tview.TreeNode
+
+	tree.SetSelectedFunc(func(node *tview.TreeNode) {
+		switch node.GetText() {
+		case "Introduction to HTML":
+			lastNode = node
+			node.AddChild(changeTitle)
+			node.AddChild(changeBody)
+		case "Change title":
+			if lastNode.GetText() == "Introduction to HTML" {
+				m.handleChangeTitle()
+			}
+		case "Change body":
+			if lastNode.GetText() == "Introduction to HTML" {
+				m.handleChangeBody()
+			}
+		case "Exit":
+			m.handleExit()
+		}
+	})
+
+	return tree
 }
 
 func (m *Menu) handleChangeTitle() {
