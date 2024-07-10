@@ -8,35 +8,18 @@ import (
 
 	"github.com/rivo/tview"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/assert"
 )
 
-// var (
-// 	mockServer = webserver.NewMockServer(nil)
-// 	mockMenu   = ui.NewMockMenu(mockServer)
-// 	mockUI     = ui.NewMockUI()
-// )
-
-// func TestNewWebsiteCommand(t *testing.T) {
-// 	// Create a new mock server
-// 	server := webserver.NewMockServer(nil)
-
-// 	// Set up the ParseHTML method of the MockHTMLService to return a specific value
-// 	server.(*webserver.MockServer).page.HTMLService.(*htmlservice.MockHTMLService).On("ParseHTML", mock.Anything).Return(&html.Node{}, nil)
-
-// 	websiteCmd := cmd.NewWebsiteCommand(mockServer, mockMenu, mockUI)
-
-// 	assert.NotNil(t, websiteCmd)
-// 	assert.IsType(t, &cmd.WebsiteCommand{}, websiteCmd)
-// }
-
 func TestWebsiteCommand_Command(t *testing.T) {
+	cfg := &cmd.Config{
+		Debug: false,
+	}
 	mockServer := webserver.NewMockServer(nil)
 	mockMenu := ui.NewMockMenu(mockServer)
 	mockUI := ui.NewMockUI()
 
-	websiteCmd := cmd.NewWebsiteCommand(mockServer, mockMenu, mockUI)
+	websiteCmd := cmd.NewWebsiteCommand(cfg, mockServer, mockMenu, mockUI)
 	command := websiteCmd.Command()
 
 	assert.NotNil(t, command)
@@ -46,74 +29,44 @@ func TestWebsiteCommand_Command(t *testing.T) {
 }
 
 func TestWebsiteCommand_HandleDebugFlag(t *testing.T) {
+	cfg := &cmd.Config{
+		Debug: true,
+	}
 	mockServer := webserver.NewMockServer(nil)
 	mockMenu := ui.NewMockMenu(mockServer)
 	mockUI := ui.NewMockUI()
 
-	websiteCmd := cmd.NewWebsiteCommand(mockServer, mockMenu, mockUI)
+	websiteCmd := cmd.NewWebsiteCommand(cfg, mockServer, mockMenu, mockUI)
 
-	flagSet := pflag.NewFlagSet("test", pflag.ContinueOnError)
-	flagSet.Bool("debug", false, "debug flag")
-
-	// Test when debug flag is not set
-	debug := websiteCmd.HandleDebugFlag(flagSet)
-	assert.False(t, debug)
-
-	// Test when debug flag is set
-	if err := flagSet.Set("debug", "true"); err != nil {
-		t.Fatalf("Failed to set flag: %v", err)
-	}
-
-	debug = websiteCmd.HandleDebugFlag(flagSet)
-	assert.True(t, debug)
+	assert.True(t, websiteCmd.Config.Debug)
 }
 
-// func TestWebsiteCommand_StartServer(t *testing.T) {
-// 	mockLogger := new(logger.MockLogger)
-// 	mockServer := webserver.NewMockServer(nil)
-// 	mockMenu := ui.NewMockMenu(&mockServer)
-// 	mockUI := ui.NewMockUI()
-
-// 	// Set expectations
-// 	mockLogger.On("Debug", mock.Anything).Return()
-
-// 	websiteCmd := cmd.NewWebsiteCommand(mockServer, mockMenu, mockUI)
-
-// 	err := websiteCmd.StartServer()
-// 	assert.NoError(t, err)
-
-// 	mockLogger.AssertExpectations(t)
-// }
-
 func TestWebsiteCommand_ConfigureAddressView(t *testing.T) {
+	cfg := &cmd.Config{
+		Debug: true,
+	}
 	mockServer := webserver.NewMockServer(nil)
 	mockMenu := ui.NewMockMenu(mockServer)
 	mockUI := ui.NewMockUI()
 
-	websiteCmd := cmd.NewWebsiteCommand(mockServer, mockMenu, mockUI)
+	websiteCmd := cmd.NewWebsiteCommand(cfg, mockServer, mockMenu, mockUI)
 
 	addressView := tview.NewTextView()
 	websiteCmd.ConfigureAddressView(addressView)
 
-	// Check if the border is set
-	// TextView doesn't have a GetBorder() method, so we can't directly check this
-	// Instead, we can check if the border color is set, which implies a border
 	assert.NotEqual(t, tview.Styles.PrimitiveBackgroundColor, addressView.GetBorderColor())
-
-	// Check the title
 	assert.Equal(t, "Webserver", addressView.GetTitle())
-
-	// Optionally, check other properties that you set in ConfigureAddressView
-	// For example, if you set text alignment:
-	// assert.Equal(t, tview.AlignCenter, addressView.GetTextAlign())
 }
 
 func TestWebsiteCommand_CreateThirdColumn(t *testing.T) {
+	cfg := &cmd.Config{
+		Debug: true,
+	}
 	mockServer := webserver.NewMockServer(nil)
 	mockMenu := ui.NewMockMenu(mockServer)
 	mockUI := ui.NewMockUI()
 
-	websiteCmd := cmd.NewWebsiteCommand(mockServer, mockMenu, mockUI)
+	websiteCmd := cmd.NewWebsiteCommand(cfg, mockServer, mockMenu, mockUI)
 
 	htmlView := tview.NewTextView()
 	addressView := tview.NewTextView()
@@ -126,11 +79,14 @@ func TestWebsiteCommand_CreateThirdColumn(t *testing.T) {
 }
 
 func TestWebsiteCommand_createFlexLayout(t *testing.T) {
+	cfg := &cmd.Config{
+		Debug: true,
+	}
 	mockServer := webserver.NewMockServer(nil)
 	mockMenu := ui.NewMockMenu(mockServer)
 	mockUI := ui.NewMockUI()
 
-	websiteCmd := cmd.NewWebsiteCommand(mockServer, mockMenu, mockUI)
+	websiteCmd := cmd.NewWebsiteCommand(cfg, mockServer, mockMenu, mockUI)
 
 	app := tview.NewApplication()
 	pages := tview.NewPages()

@@ -48,7 +48,7 @@ func NewRootCmd(
 
 	rootCmd.PersistentFlags().BoolVarP(&cfg.Debug, "debug", "d", false, "Enable debug mode")
 
-	websiteCommand := NewWebsiteCommand(server, menu, ui)
+	websiteCommand := NewWebsiteCommand(cfg, server, menu, ui)
 	describeCommand := NewDescribeCommand(cfg)
 	detectCommand := NewDetectCommand(cfg)
 

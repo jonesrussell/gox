@@ -8,11 +8,11 @@ import (
 
 	"github.com/rivo/tview"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 	"github.com/yosssi/gohtml"
 )
 
 type WebsiteCommand struct {
+	Config     *Config
 	server     webserver.WebServerInterface
 	menu       ui.MenuInterface
 	ui         ui.UIInterface
@@ -21,6 +21,7 @@ type WebsiteCommand struct {
 }
 
 func NewWebsiteCommand(
+	cfg *Config,
 	server webserver.WebServerInterface,
 	menu ui.MenuInterface,
 	ui ui.UIInterface,
@@ -32,6 +33,7 @@ func NewWebsiteCommand(
 		})
 
 	cmd := &WebsiteCommand{
+		Config:     cfg,
 		server:     server,
 		menu:       menu,
 		ui:         ui,
@@ -43,16 +45,6 @@ func NewWebsiteCommand(
 	cmd.updateHTMLView()
 
 	return cmd
-}
-
-func (w *WebsiteCommand) HandleDebugFlag(flagset *pflag.FlagSet) bool {
-	debug, err := flagset.GetBool("debug")
-	if err != nil {
-		log.Println("Can't get debug flag, defaulting to false")
-		debug = false
-	}
-
-	return debug
 }
 
 func (w *WebsiteCommand) StartServer() error {
@@ -140,10 +132,8 @@ func (w *WebsiteCommand) Command() *cobra.Command {
 			particularly useful for beginner developers who need to
 			quickly	set up a static website.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			debug := w.HandleDebugFlag(cmd.Flags())
-
-			if debug {
-				log.Println("Debugging")
+			if w.Config.Debug {
+				log.Println("website: Debugging")
 			}
 
 			if err := w.StartServer(); err != nil {
