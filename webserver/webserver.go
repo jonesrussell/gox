@@ -33,8 +33,8 @@ type webServer struct {
 	sseServer *sse.Server
 }
 
-// NewServer returns a new Server
-func NewServer(logger logger.LoggerInterface) WebServerInterface {
+// NewWebServer returns a new Server
+func NewWebServer(logger logger.LoggerInterface) WebServerInterface {
 	logger.Debug("Creating a new web server...")
 
 	// Create a new WebsiteUpdater

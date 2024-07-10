@@ -17,8 +17,8 @@ func main() {
 		log.Fatalf("Error creating NewLogger: %v", err)
 	}
 
-	// Pass the Logger to NewServer
-	server := webserver.NewServer(logger)
+	// Pass the Logger to NewWebServer
+	server := webserver.NewWebServer(logger)
 
 	// Create tview.Application and tview.Pages instances
 	uiApp := tview.NewApplication()
