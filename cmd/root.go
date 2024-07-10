@@ -41,12 +41,10 @@ func NewRootCmd(
 	ui ui.UIInterface,
 ) *cobra.Command {
 	websiteCommand := NewWebsiteCommand(server, menu, ui)
-	symexCommand := NewSymexCommand()
 	describeCommand := NewDescribeCommand()
 	detectCommand := NewDetectCommand()
 
 	rootCmd.AddCommand(websiteCommand.Command())
-	rootCmd.AddCommand(symexCommand.Command())
 	rootCmd.AddCommand(describeCommand.Command())
 	rootCmd.AddCommand(detectCommand.Command())
 
