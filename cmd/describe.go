@@ -18,18 +18,18 @@ import (
 )
 
 type DescribeCommand struct {
-	// Add fields here similar to WebsiteCommand
+	Path         string
+	IncludeTests bool
+	IncludeMocks bool
 }
 
 func NewDescribeCommand() *DescribeCommand {
-	// Initialize your DescribeCommand here
-	cmd := &DescribeCommand{
-		// Initialize fields here
-	}
+	cmd := &DescribeCommand{}
 
 	return cmd
 }
 
+// TODO: remove
 func (d *DescribeCommand) HandleDebugFlag(flagset *pflag.FlagSet) bool {
 	debug, err := flagset.GetBool("debug")
 	if err != nil {
@@ -102,8 +102,8 @@ func (d *DescribeCommand) Command() *cobra.Command {
 				log.Println("Debugging")
 			}
 
-			path := args[0]
-			fileInfo, err := os.Stat(path)
+			d.Path = args[0]
+			fileInfo, err := os.Stat(d.Path)
 			if err != nil {
 				fmt.Println("Error accessing path:", err)
 				return
@@ -112,10 +112,13 @@ func (d *DescribeCommand) Command() *cobra.Command {
 			includeTests, _ := cmd.Flags().GetBool("include-tests")
 			includeMocks, _ := cmd.Flags().GetBool("include-mocks")
 
+			d.IncludeTests = includeTests
+			d.IncludeMocks = includeMocks
+
 			if fileInfo.IsDir() {
-				d.processDirectory(path, includeTests, includeMocks)
+				d.processDirectory(d.Path, includeTests, includeMocks)
 			} else {
-				description, err := d.describeFile(path)
+				description, err := d.describeFile(d.Path)
 				if err != nil {
 					// Handle error
 					fmt.Println(err)
@@ -125,6 +128,9 @@ func (d *DescribeCommand) Command() *cobra.Command {
 			}
 		},
 	}
+
+	describeCmd.Flags().BoolVarP(&d.IncludeTests, "include-tests", "t", false, "Include test files in the description")
+	describeCmd.Flags().BoolVarP(&d.IncludeMocks, "include-mocks", "m", false, "Include mock files in the description")
 
 	return describeCmd
 }

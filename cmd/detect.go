@@ -22,6 +22,7 @@ func NewDetectCommand() *DetectCommand {
 	return cmd
 }
 
+// TODO: remove
 func (d *DetectCommand) HandleDebugFlag(flagset *pflag.FlagSet) bool {
 	debug, err := flagset.GetBool("debug")
 	if err != nil {
