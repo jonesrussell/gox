@@ -3,6 +3,7 @@ package webserver
 import (
 	"fmt"
 	"html/template"
+	"jonesrussell/gocreate/htmlservice"
 	"jonesrussell/gocreate/logger"
 	"net/http"
 	"sync"
@@ -41,8 +42,11 @@ func NewServer(logger logger.LoggerInterface) WebServerInterface {
 
 	body := "<h1>My Heading</h1>"
 
+	// Create a new HTMLService
+	htmlService := htmlservice.NewHTMLService()
+
 	// Explicitly use the FileReader interface when creating a new Page instance
-	page, err := NewPage("", template.HTML(body), updater, "static/index.html", logger)
+	page, err := NewPage("", template.HTML(body), updater, "static/index.html", logger, htmlService)
 	if err != nil {
 		logger.Error("Error creating page: ", err)
 		return nil
@@ -112,11 +116,11 @@ func (s *webServer) Stop() error {
 
 func (s *webServer) UpdateTitle(content string) {
 	s.logger.Debug("UpdateTitle called with content: " + content)
-	s.page.SetTitle(content)
-	s.ssePublishUpdate(content, s.page.GetBody()) // pass the title and body to the function
+	s.page.Template.SetTitle(content)
+	s.ssePublishUpdate(content, s.page.Template.GetBody()) // pass the title and body to the function
 	s.logger.Debug("Title updated, sending update signal")
 	select {
-	case s.page.updateChan <- struct{}{}:
+	case s.page.UpdateChan <- struct{}{}:
 		s.logger.Debug("Update signal sent successfully")
 	default:
 		s.logger.Debug("Update channel is full, skipping signal")
@@ -125,11 +129,11 @@ func (s *webServer) UpdateTitle(content string) {
 
 func (s *webServer) UpdateBody(content string) {
 	s.logger.Debug("UpdateBody called with content: " + content)
-	s.page.SetBody(content)
-	s.ssePublishUpdate(s.page.GetTitle(), content) // pass the title and body to the function
+	s.page.Template.SetBody(content)
+	s.ssePublishUpdate(s.page.Template.GetTitle(), content) // pass the title and body to the function
 	s.logger.Debug("Body updated, sending update signal")
 	select {
-	case s.page.updateChan <- struct{}{}:
+	case s.page.UpdateChan <- struct{}{}:
 		s.logger.Debug("Update signal sent successfully")
 	default:
 		s.logger.Debug("Update channel is full, skipping signal")
@@ -151,7 +155,7 @@ func (s *webServer) GetURL() string {
 }
 
 func (s *webServer) GetUpdateChan() <-chan struct{} {
-	return s.page.updateChan
+	return s.page.UpdateChan
 }
 
 func (s *webServer) ssePublishUpdate(title string, body string) {

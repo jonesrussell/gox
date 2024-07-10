@@ -4,24 +4,27 @@ import (
 	"bytes"
 	"html/template"
 	"io"
+	"jonesrussell/gocreate/htmlservice"
 	"jonesrussell/gocreate/logger"
 	"os"
-
-	"jonesrussell/gocreate/htmlservice"
 
 	"github.com/yosssi/gohtml"
 	"golang.org/x/net/html"
 )
 
-type Page struct {
-	title        string
-	body         template.HTML
+type Template struct {
+	Title        string
+	Body         template.HTML
 	HTML         []byte
-	updater      PageUpdaterInterface
-	templatePath string
-	updateChan   chan struct{}
-	logger       logger.LoggerInterface
-	htmlService  *htmlservice.HTMLService
+	TemplatePath string
+}
+
+type Page struct {
+	Template    Template
+	Updater     PageUpdaterInterface
+	UpdateChan  chan struct{}
+	Logger      logger.LoggerInterface
+	HTMLService htmlservice.HTMLServiceInterface
 }
 
 func NewPage(
@@ -30,35 +33,38 @@ func NewPage(
 	updater PageUpdaterInterface,
 	templatePath string,
 	logger logger.LoggerInterface,
+	htmlService htmlservice.HTMLServiceInterface,
 ) (*Page, error) {
 	page := &Page{
-		title:        title,
-		body:         body,
-		updater:      updater,
-		templatePath: templatePath,
-		updateChan:   make(chan struct{}, 1),
-		logger:       logger,
-		htmlService:  htmlservice.NewHTMLService(),
+		Template: Template{
+			Title:        title,
+			Body:         body,
+			TemplatePath: templatePath,
+		},
+		Updater:     updater,
+		UpdateChan:  make(chan struct{}, 1),
+		Logger:      logger,
+		HTMLService: htmlService,
 	}
 
-	tmpl, err := os.ReadFile(templatePath)
+	tmpl, err := os.ReadFile(page.Template.TemplatePath)
 	if err != nil {
-		logger.Error("Error reading template:", err)
+		page.Logger.Error("Error reading template:", err)
 		return nil, err
 	}
 
-	doc, err := page.htmlService.ParseHTML(tmpl) // Use HTMLService to parse HTML
+	doc, err := page.HTMLService.ParseHTML(tmpl) // Use HTMLService to parse HTML
 	if err != nil {
-		logger.Error("Error parsing template:", err)
+		page.Logger.Error("Error parsing template:", err)
 		return nil, err
 	}
 
 	// If title is empty, use the default title from the template
-	if title == "" {
+	if page.Template.Title == "" {
 		var f func(*html.Node)
 		f = func(n *html.Node) {
 			if n.Type == html.ElementNode && n.Data == "title" {
-				page.title = n.FirstChild.Data
+				page.Template.Title = n.FirstChild.Data
 			}
 			for c := n.FirstChild; c != nil; c = c.NextSibling {
 				f(c)
@@ -68,14 +74,14 @@ func NewPage(
 	}
 
 	// If body is empty, use the default body from the template
-	if body == "" {
+	if string(page.Template.Body) == "" {
 		var f func(*html.Node)
 		f = func(n *html.Node) {
 			if n.Type == html.ElementNode && n.Data == "body" {
 				var buf bytes.Buffer
 				w := io.Writer(&buf)
 				html.Render(w, n)
-				page.body = template.HTML(gohtml.Format(buf.String()))
+				page.Template.Body = template.HTML(gohtml.Format(buf.String()))
 			}
 			for c := n.FirstChild; c != nil; c = c.NextSibling {
 				f(c)
@@ -85,84 +91,90 @@ func NewPage(
 	}
 
 	// Update the website using the updater
-	html, err := updater.UpdatePage(page.title, string(page.body), templatePath)
+	docHTML, err := page.Updater.UpdatePage(page.Template.Title, string(page.Template.Body), page.Template.TemplatePath)
 	if err != nil {
-		logger.Error("Error updating website:", err)
+		page.Logger.Error("Error updating website:", err)
 		return nil, err
 	}
 
-	page.HTML = []byte(html)
+	page.Template.HTML = []byte(docHTML)
 
 	return page, nil
 }
 
 func (p *Page) Render() ([]byte, error) {
-	doc, err := p.htmlService.ParseHTML(p.HTML) // Use HTMLService to parse HTML
+	doc, err := p.HTMLService.ParseHTML(p.Template.HTML) // Use HTMLService to parse HTML
 	if err != nil {
-		p.logger.Error("Error parsing HTML: ", err)
+		p.Logger.Error("Error parsing HTML: ", err)
 		return nil, err
 	}
 
-	p.updater.ChangeTitle(doc, p.title)
+	p.Updater.ChangeTitle(doc, p.Template.Title)
 
-	p.updater.ChangeBody(doc, string(p.body))
+	p.Updater.ChangeBody(doc, string(p.Template.Body))
 
-	html, err := p.htmlService.RenderHTML(doc) // Use HTMLService to render HTML
+	docHTML, err := p.HTMLService.RenderHTML(doc) // Use HTMLService to render HTML
 	if err != nil {
-		p.logger.Error("Error rendering updated HTML: ", err)
+		p.Logger.Error("Error rendering updated HTML: ", err)
 		return nil, err
 	}
 
-	return html, nil
+	return docHTML, nil
 }
 
-func (p *Page) SetTitle(title string) {
-	p.logger.Debug("SetTitle called with title: " + title)
-	p.title = title
-	p.HTML = []byte{} // Clear cached HTML
-	p.logger.Debug("Title set successfully, cached HTML cleared")
+func (t *Template) SetTitle(title string) {
+	t.Title = title
+	t.HTML = []byte{} // Clear cached HTML
+}
+
+func (t *Template) SetBody(body string) {
+	t.Body = template.HTML(body)
+	t.HTML = []byte{} // Clear cached HTML
+}
+
+func (p *Page) UpdateTitle(title string) {
+	p.Logger.Debug("UpdateTitle called with title: " + title)
+	p.Template.SetTitle(title)
+	p.Logger.Debug("Title set successfully, cached HTML cleared")
 	p.notifyUpdate()
-	p.logger.Debug("notifyUpdate called after setting title")
+	p.Logger.Debug("notifyUpdate called after setting title")
 }
 
-func (p *Page) SetBody(body string) {
-	p.logger.Debug("SetBody called with body: " + body)
-	p.body = template.HTML(body)
-	p.HTML = []byte{} // Clear cached HTML
-	p.logger.Debug("Body set successfully, cached HTML cleared")
+func (p *Page) UpdateBody(body string) {
+	p.Logger.Debug("UpdateBody called with body: " + body)
+	p.Template.SetBody(body)
+	p.Logger.Debug("Body set successfully, cached HTML cleared")
 	p.notifyUpdate()
-	p.logger.Debug("notifyUpdate called after setting body")
+	p.Logger.Debug("notifyUpdate called after setting body")
 }
 
-func (p *Page) GetTitle() string {
-	p.logger.Debug("GetTitle called")
-	return p.title
+func (t *Template) GetTitle() string {
+	return t.Title
 }
 
-func (p *Page) GetBody() string {
-	p.logger.Debug("GetBody called")
-	return string(p.body)
+func (t *Template) GetBody() string {
+	return string(t.Body)
 }
 
 func (p *Page) GetHTML() string {
-	p.logger.Debug("GetHTML called")
-	if len(p.HTML) == 0 {
-		p.logger.Debug("Cached HTML is empty, generating new HTML")
-		html, err := p.updater.UpdatePage(p.title, string(p.body), p.templatePath)
+	p.Logger.Debug("GetHTML called")
+	if len(p.Template.HTML) == 0 {
+		p.Logger.Debug("Cached HTML is empty, generating new HTML")
+		docHTML, err := p.Updater.UpdatePage(p.Template.Title, string(p.Template.Body), p.Template.TemplatePath)
 		if err != nil {
-			p.logger.Error("Error updating website: ", err)
+			p.Logger.Error("Error updating website: ", err)
 			return ""
 		}
-		p.HTML = []byte(html)
-		p.logger.Debug("New HTML generated and cached successfully")
+		p.Template.HTML = []byte(docHTML)
+		p.Logger.Debug("New HTML generated and cached successfully")
 	} else {
-		p.logger.Debug("Returning cached HTML")
+		p.Logger.Debug("Returning cached HTML")
 	}
-	return string(p.HTML)
+	return string(p.Template.HTML)
 }
 
 func (p *Page) notifyUpdate() {
-	p.logger.Debug("notifyUpdate called")
-	p.updateChan <- struct{}{} // Block until the message can be sent
-	p.logger.Debug("Update notification sent successfully")
+	p.Logger.Debug("notifyUpdate called")
+	p.UpdateChan <- struct{}{} // Block until the message can be sent
+	p.Logger.Debug("Update notification sent successfully")
 }

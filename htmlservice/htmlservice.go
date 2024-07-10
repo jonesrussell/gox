@@ -6,9 +6,15 @@ import (
 	"golang.org/x/net/html"
 )
 
+// HTMLServiceInterface is the interface that types must implement to be considered an HTMLService.
+type HTMLServiceInterface interface {
+	ParseHTML(htmlData []byte) (*html.Node, error)
+	RenderHTML(doc *html.Node) ([]byte, error)
+}
+
 type HTMLService struct{}
 
-func NewHTMLService() *HTMLService {
+func NewHTMLService() HTMLServiceInterface { // Note the return type
 	return &HTMLService{}
 }
 
