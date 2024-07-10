@@ -6,10 +6,11 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/r3labs/sse/v2 v2.10.0
 	github.com/rivo/tview v0.0.0-20240625185742-b0a7293b8130
-	github.com/samber/slog-multi v1.1.0
+	github.com/samber/slog-multi v1.2.0
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.9.0
+	github.com/yosssi/gohtml v0.0.0-20201013000340-ee4748c638f4
 	golang.org/x/net v0.27.0
 )
 

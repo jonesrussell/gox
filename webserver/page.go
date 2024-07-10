@@ -3,8 +3,13 @@ package webserver
 import (
 	"bytes"
 	"html/template"
+	"io"
 	"jonesrussell/gocreate/logger"
+	"os"
 
+	"jonesrussell/gocreate/htmlservice"
+
+	"github.com/yosssi/gohtml"
 	"golang.org/x/net/html"
 )
 
@@ -16,6 +21,7 @@ type Page struct {
 	templatePath string
 	updateChan   chan struct{}
 	logger       logger.LoggerInterface
+	htmlService  *htmlservice.HTMLService
 }
 
 func NewPage(
@@ -24,7 +30,7 @@ func NewPage(
 	updater PageUpdaterInterface,
 	templatePath string,
 	logger logger.LoggerInterface,
-) *Page {
+) (*Page, error) {
 	page := &Page{
 		title:        title,
 		body:         body,
@@ -32,22 +38,66 @@ func NewPage(
 		templatePath: templatePath,
 		updateChan:   make(chan struct{}, 1),
 		logger:       logger,
+		htmlService:  htmlservice.NewHTMLService(),
+	}
+
+	tmpl, err := os.ReadFile(templatePath)
+	if err != nil {
+		logger.Error("Error reading template:", err)
+		return nil, err
+	}
+
+	doc, err := page.htmlService.ParseHTML(tmpl) // Use HTMLService to parse HTML
+	if err != nil {
+		logger.Error("Error parsing template:", err)
+		return nil, err
+	}
+
+	// If title is empty, use the default title from the template
+	if title == "" {
+		var f func(*html.Node)
+		f = func(n *html.Node) {
+			if n.Type == html.ElementNode && n.Data == "title" {
+				page.title = n.FirstChild.Data
+			}
+			for c := n.FirstChild; c != nil; c = c.NextSibling {
+				f(c)
+			}
+		}
+		f(doc)
+	}
+
+	// If body is empty, use the default body from the template
+	if body == "" {
+		var f func(*html.Node)
+		f = func(n *html.Node) {
+			if n.Type == html.ElementNode && n.Data == "body" {
+				var buf bytes.Buffer
+				w := io.Writer(&buf)
+				html.Render(w, n)
+				page.body = template.HTML(gohtml.Format(buf.String()))
+			}
+			for c := n.FirstChild; c != nil; c = c.NextSibling {
+				f(c)
+			}
+		}
+		f(doc)
 	}
 
 	// Update the website using the updater
-	html, err := updater.UpdatePage(title, string(body), templatePath)
+	html, err := updater.UpdatePage(page.title, string(page.body), templatePath)
 	if err != nil {
 		logger.Error("Error updating website:", err)
-		return page
+		return nil, err
 	}
 
 	page.HTML = []byte(html)
 
-	return page
+	return page, nil
 }
 
 func (p *Page) Render() ([]byte, error) {
-	doc, err := html.Parse(bytes.NewReader(p.HTML))
+	doc, err := p.htmlService.ParseHTML(p.HTML) // Use HTMLService to parse HTML
 	if err != nil {
 		p.logger.Error("Error parsing HTML: ", err)
 		return nil, err
@@ -57,14 +107,13 @@ func (p *Page) Render() ([]byte, error) {
 
 	p.updater.ChangeBody(doc, string(p.body))
 
-	var buf bytes.Buffer
-	err = html.Render(&buf, doc)
+	html, err := p.htmlService.RenderHTML(doc) // Use HTMLService to render HTML
 	if err != nil {
 		p.logger.Error("Error rendering updated HTML: ", err)
 		return nil, err
 	}
 
-	return buf.Bytes(), nil
+	return html, nil
 }
 
 func (p *Page) SetTitle(title string) {
@@ -114,10 +163,6 @@ func (p *Page) GetHTML() string {
 
 func (p *Page) notifyUpdate() {
 	p.logger.Debug("notifyUpdate called")
-	select {
-	case p.updateChan <- struct{}{}:
-		p.logger.Debug("Update notification sent successfully")
-	default:
-		p.logger.Debug("Update channel is full, notification not sent")
-	}
+	p.updateChan <- struct{}{} // Block until the message can be sent
+	p.logger.Debug("Update notification sent successfully")
 }

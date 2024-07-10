@@ -31,7 +31,10 @@ func TestPage_NewPage(t *testing.T) {
 	// This needs to be done BEFORE calling NewPage
 	mockUpdater.On("UpdatePage", title, string(body), templatePath).Return(expectedHTML, nil)
 
-	page := NewPage(title, body, mockUpdater, templatePath, mockLogger)
+	page, err := NewPage(title, body, mockUpdater, templatePath, mockLogger)
+	if err != nil {
+		t.Fatal("Error creating page:", err)
+	}
 
 	assert.Equal(t, title, page.title)
 	assert.Equal(t, body, page.body)
@@ -113,13 +116,16 @@ func TestPage_GetHTML(t *testing.T) {
 		mockLogger.On("Error", mock.Anything, mock.AnythingOfType("error"), mock.Anything).Return()
 
 		// Initialize the Page struct
-		page := NewPage(
+		page, err := NewPage(
 			"Test Title",
 			template.HTML("<p>Test Body</p>"),
 			mockUpdater,
 			"test_template.html",
 			mockLogger,
 		)
+		if err != nil {
+			t.Fatal(err)
+		}
 
 		// Call GetHTML
 		html := page.GetHTML()

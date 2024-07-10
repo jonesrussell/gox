@@ -42,14 +42,18 @@ func NewServer(logger logger.LoggerInterface) WebServerInterface {
 	body := "<h1>My Heading</h1>"
 
 	// Explicitly use the FileReader interface when creating a new Page instance
-	page := NewPage("My Title", template.HTML(body), updater, "static/index.html", logger)
+	page, err := NewPage("", template.HTML(body), updater, "static/index.html", logger)
+	if err != nil {
+		logger.Error("Error creating page: ", err)
+		return nil
+	}
 
 	s := &webServer{
 		logger:    logger,
 		mux:       http.NewServeMux(),
 		srv:       &http.Server{Addr: ":3000"},
 		page:      page,
-		sseServer: sse.New(), // Initialize the SSE server here
+		sseServer: sse.New(),
 	}
 
 	// Create the SSE server

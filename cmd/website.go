@@ -9,6 +9,7 @@ import (
 	"github.com/rivo/tview"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/yosssi/gohtml"
 )
 
 type WebsiteCommand struct {
@@ -115,8 +116,9 @@ func (w *WebsiteCommand) runApp(layout *tview.Flex) {
 
 func (w *WebsiteCommand) updateHTMLView() {
 	html := w.server.GetHTML()
+	formattedHTML := gohtml.Format(html)
 	w.htmlView.Clear()
-	fmt.Fprintf(w.htmlView, "%s", html)
+	fmt.Fprintf(w.htmlView, "%s", formattedHTML)
 }
 
 func (w *WebsiteCommand) startHTMLViewUpdater() {

@@ -26,13 +26,17 @@ func NewMockServer(page *Page) WebServerInterface {
 	}
 
 	if page == nil {
-		page = NewPage(
+		page, err = NewPage(
 			"Mock Title",
 			template.HTML("<h1>Mock Body</h1>"),
 			NewPageUpdater(wslog),
 			"../static/index.html",
 			wslog,
 		)
+		if err != nil {
+			wslog.Error("Error creating page: ", err)
+			return nil
+		}
 	}
 
 	return &MockServer{
