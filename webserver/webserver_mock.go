@@ -2,10 +2,15 @@ package webserver
 
 import (
 	"html/template"
+	"jonesrussell/gocreate/htmlservice"
 	"jonesrussell/gocreate/logger"
 	"log"
 	"net/http"
 	"sync"
+
+	sse "github.com/r3labs/sse/v2"
+	"github.com/stretchr/testify/mock"
+	"golang.org/x/net/html"
 )
 
 type MockServer struct {
@@ -14,6 +19,7 @@ type MockServer struct {
 	page       *Page
 	log        logger.LoggerInterface
 	updateChan chan struct{}
+	sseServer  *sse.Server
 }
 
 var _ WebServerInterface = (*MockServer)(nil)
@@ -25,6 +31,12 @@ func NewMockServer(page *Page) WebServerInterface {
 		log.Fatalf("Error initializing logger: %v", err)
 	}
 
+	// Create a new MockHTMLService
+	mockHTMLService := new(htmlservice.MockHTMLService)
+
+	// Set up the ParseHTML method of the MockHTMLService to return a specific value
+	mockHTMLService.On("ParseHTML", mock.Anything).Return(&html.Node{}, nil)
+
 	if page == nil {
 		page, err = NewPage(
 			"Mock Title",
@@ -32,6 +44,7 @@ func NewMockServer(page *Page) WebServerInterface {
 			NewPageUpdater(wslog),
 			"../static/index.html",
 			wslog,
+			mockHTMLService, // Pass the mock HTMLService to NewPage
 		)
 		if err != nil {
 			wslog.Error("Error creating page: ", err)
@@ -40,10 +53,10 @@ func NewMockServer(page *Page) WebServerInterface {
 	}
 
 	return &MockServer{
-		srv:        &http.Server{Addr: ":3000"},
-		page:       page,
-		log:        wslog,
-		updateChan: make(chan struct{}),
+		srv:       &http.Server{Addr: ":3000"},
+		wg:        sync.WaitGroup{},
+		page:      page,
+		sseServer: sse.New(),
 	}
 }
 
@@ -67,14 +80,18 @@ func (ms *MockServer) GetUpdateChan() <-chan struct{} {
 
 func (ms *MockServer) UpdateTitle(title string) {
 	log.Printf("Updating title to: %s\n", title)
-	ms.page.title = title
+	ms.page.Template.Title = title
 	ms.notifyUpdate()
 }
 
 func (ms *MockServer) UpdateBody(content string) {
 	log.Printf("Updating body to: %s\n", content)
-	ms.page.body = template.HTML(content)
+	ms.page.Template.Body = template.HTML(content)
 	ms.notifyUpdate()
+}
+
+func (ms *MockServer) GetHTML() string {
+	return string(ms.page.Template.HTML)
 }
 
 func (ms *MockServer) notifyUpdate() {
@@ -82,10 +99,6 @@ func (ms *MockServer) notifyUpdate() {
 	case ms.updateChan <- struct{}{}:
 	default:
 	}
-}
-
-func (ms *MockServer) GetHTML() string {
-	return string(ms.page.HTML)
 }
 
 func (ms *MockServer) Logger() logger.LoggerInterface {

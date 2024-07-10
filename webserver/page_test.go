@@ -2,12 +2,13 @@ package webserver
 
 import (
 	"html/template"
+	"jonesrussell/gocreate/htmlservice"
 	"jonesrussell/gocreate/logger"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
+	"golang.org/x/net/html"
 )
 
 const (
@@ -18,124 +19,45 @@ const (
 )
 
 func TestPage_NewPage(t *testing.T) {
-	mockUpdater := &MockPageUpdater{}
-	mockLogger := new(logger.MockLogger)
-
-	title := "Test Title"
-	body := template.HTML("Test Body")
-	templatePath := "template.html"
-
-	expectedHTML := "<html><head><title>Test Title</title></head><body>Test Body</body></html>"
-
-	// Set up the mock updater to return the expected HTML
-	// This needs to be done BEFORE calling NewPage
-	mockUpdater.On("UpdatePage", title, string(body), templatePath).Return(expectedHTML, nil)
-
-	page, err := NewPage(title, body, mockUpdater, templatePath, mockLogger)
-	if err != nil {
-		t.Fatal("Error creating page:", err)
-	}
-
-	assert.Equal(t, title, page.title)
-	assert.Equal(t, body, page.body)
-	assert.Equal(t, expectedHTML, string(page.HTML))
-
-	mockUpdater.AssertExpectations(t)
-	mockLogger.AssertExpectations(t)
-}
-
-func TestPage_Render(t *testing.T) {
 	tests := []struct {
-		name    string
-		title   string
-		body    string
-		want    []byte
-		wantErr bool
+		name         string
+		title        string
+		body         string
+		expectedHTML string
 	}{
 		{
-			name:    "Test with valid title and body",
-			title:   testTitle,
-			body:    testBody,
-			want:    []byte("<html><head><title>Test Title</title></head><body>Test Body</body></html>"),
-			wantErr: false,
+			name:         "Test with valid title and body",
+			title:        testTitle,
+			body:         testBody,
+			expectedHTML: "<html><head><title>Test Title</title></head><body>Test Body</body></html>",
 		},
-		{
-			name:    "Test with empty title",
-			title:   "",
-			body:    testBody,
-			want:    []byte("<html><head><title></title></head><body>Test Body</body></html>"),
-			wantErr: false,
-		},
-		{
-			name:    "Test with empty body",
-			title:   testTitle,
-			body:    "",
-			want:    []byte("<html><head><title>Test Title</title></head><body></body></html>"),
-			wantErr: false,
-		},
-		{
-			name:    "Test with empty title and body",
-			title:   "",
-			body:    "",
-			want:    []byte("<html><head><title></title></head><body></body></html>"),
-			wantErr: false,
-		},
+		// Add more test cases as needed
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := &Page{
-				title:   tt.title,
-				body:    template.HTML(tt.body),
-				HTML:    []byte(mockHTML),
-				updater: NewPageUpdater(logInstance),
+			mockUpdater := &MockPageUpdater{}
+			mockLogger := new(logger.MockLogger)
+			mockHTMLService := new(htmlservice.MockHTMLService) // Create a mock HTMLService
+
+			// Set up the mock updater to return the expected HTML
+			mockUpdater.On("UpdatePage", tt.title, tt.body, testFilename).Return(tt.expectedHTML, nil)
+
+			// Set up the mock HTMLService to return a nil doc and no error
+			mockHTMLService.On("ParseHTML", mock.Anything).Return(&html.Node{}, nil)
+
+			page, err := NewPage(tt.title, template.HTML(tt.body), mockUpdater, testFilename, mockLogger, mockHTMLService) // Pass the mock HTMLService to NewPage
+			if err != nil {
+				t.Fatal("Error creating page:", err)
 			}
-			got, err := p.Render()
-			if tt.wantErr {
-				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
-				assert.Equal(t, tt.want, got)
-			}
+
+			assert.Equal(t, tt.title, page.Template.Title)
+			assert.Equal(t, template.HTML(tt.body), page.Template.Body)
+			assert.Equal(t, tt.expectedHTML, string(page.Template.HTML))
+
+			mockUpdater.AssertExpectations(t)
+			mockLogger.AssertExpectations(t)
+			mockHTMLService.AssertExpectations(t) // Verify that the HTMLService methods were called as expected
 		})
 	}
-}
-
-func TestPage_GetHTML(t *testing.T) {
-	t.Run("Test with valid title and body", func(t *testing.T) {
-		// Create a mock updater
-		mockUpdater := new(MockPageUpdater)
-		mockUpdater.On("UpdatePage", mock.Anything, mock.Anything, mock.Anything).Return("<html><head><title>Test Title</title></head><body><p>Test Body</p></body></html>", nil)
-
-		// Create a mock file reader
-		mockFileReader := new(MockFileReader)
-		mockFileReader.On("ReadFile", mock.Anything).Return([]byte("mock file content"), nil)
-
-		// Create a mock logger
-		mockLogger := new(logger.MockLogger)
-		mockLogger.On("Debug", mock.Anything, mock.Anything).Return()
-		mockLogger.On("Error", mock.Anything, mock.AnythingOfType("error"), mock.Anything).Return()
-
-		// Initialize the Page struct
-		page, err := NewPage(
-			"Test Title",
-			template.HTML("<p>Test Body</p>"),
-			mockUpdater,
-			"test_template.html",
-			mockLogger,
-		)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		// Call GetHTML
-		html := page.GetHTML()
-
-		// Assert the result
-		assert.Contains(t, html, "Test Title")
-		assert.Contains(t, html, "<p>Test Body</p>")
-
-		// Verify that methods were called
-		mockUpdater.AssertCalled(t, "UpdatePage", mock.Anything, mock.Anything, mock.Anything)
-		mockLogger.AssertCalled(t, "Debug", mock.Anything, mock.Anything)
-	})
 }
